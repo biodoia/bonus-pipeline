@@ -1,0 +1,21 @@
+# Binaries
+bin/
+daemon
+tui
+pipeline
+*.exe
+
+# Agent Python
+agent/__pycache__/
+agent/*.pyc
+agent/.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
