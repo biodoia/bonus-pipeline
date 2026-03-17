@@ -33,6 +33,12 @@ agent:
 agent-demo:
 	cd agent && python main.py --demo --ollama http://localhost:11434
 
+full-auto:
+	cd agent && python main.py --full-auto --ollama http://localhost:11434
+
+full-auto-casino:
+	cd agent && python main.py --full-auto --casino $(CASINO) --ollama http://localhost:11434
+
 legacy:
 	go run . $(ARGS)
 
