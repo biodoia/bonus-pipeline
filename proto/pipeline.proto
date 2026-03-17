@@ -1,0 +1,189 @@
+syntax = "proto3";
+
+package pipeline;
+
+option go_package = "github.com/biodoia/bonus-pipeline/proto/pipelinepb";
+
+// ── Service definitions ─────────────────────────────────────────────────────
+
+service PipelineService {
+  // Pipeline lifecycle
+  rpc Init(InitRequest) returns (InitResponse);
+  rpc Reset(ResetRequest) returns (ResetResponse);
+
+  // Casino operations
+  rpc GetNext(GetNextRequest) returns (GetNextResponse);
+  rpc MarkDone(MarkDoneRequest) returns (MarkDoneResponse);
+  rpc SkipCasino(SkipCasinoRequest) returns (SkipCasinoResponse);
+
+  // Query operations
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  rpc ListCasinos(ListCasinosRequest) returns (ListCasinosResponse);
+  rpc CalcEV(CalcEVRequest) returns (CalcEVResponse);
+
+  // Strategy advisor
+  rpc GetStrategy(GetStrategyRequest) returns (GetStrategyResponse);
+
+  // Streaming for live updates
+  rpc WatchState(WatchStateRequest) returns (stream StateUpdate);
+}
+
+// ── Messages ────────────────────────────────────────────────────────────────
+
+message InitRequest {
+  double bankroll = 1;
+}
+message InitResponse {
+  bool ok = 1;
+  string message = 2;
+  double bankroll = 3;
+}
+
+message ResetRequest {}
+message ResetResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message GetNextRequest {}
+message GetNextResponse {
+  bool pipeline_complete = 1;
+  CasinoInfo casino = 2;
+  double ev = 3;
+  double expected_output = 4;
+  double current_bankroll = 5;
+  double bet_size = 6;
+}
+
+message MarkDoneRequest {
+  string casino_id = 1;
+  double result = 2;
+}
+message MarkDoneResponse {
+  bool ok = 1;
+  string message = 2;
+  double input_amount = 3;
+  double output_amount = 4;
+  double ev_actual = 5;
+  double new_bankroll = 6;
+}
+
+message SkipCasinoRequest {
+  string casino_id = 1;
+  string reason = 2;
+}
+message SkipCasinoResponse {
+  bool ok = 1;
+  string message = 2;
+}
+
+message GetStatusRequest {}
+message GetStatusResponse {
+  double initial_bankroll = 1;
+  double current_bankroll = 2;
+  double pnl = 3;
+  int32 total_casinos = 4;
+  int32 done_count = 5;
+  double total_ev_actual = 6;
+  repeated CasinoStatus casinos = 7;
+  repeated StepLogEntry steps = 8;
+}
+
+message ListCasinosRequest {}
+message ListCasinosResponse {
+  repeated CasinoInfo casinos = 1;
+  repeated BannedInfo banned = 2;
+}
+
+message CalcEVRequest {
+  string casino_id = 1;
+}
+message CalcEVResponse {
+  string casino_name = 1;
+  double bonus_value = 2;
+  double wager_req = 3;
+  double wager_amount = 4;
+  string game_name = 5;
+  double game_rtp = 6;
+  double house_edge = 7;
+  double expected_loss = 8;
+  double ev = 9;
+  double current_bankroll = 10;
+  double expected_output = 11;
+  double bet_size = 12;
+  double est_minutes = 13;
+}
+
+message GetStrategyRequest {
+  string casino_id = 1;
+}
+message GetStrategyResponse {
+  string casino_name = 1;
+  string game_type = 2;     // "blackjack", "poker", "slots", "provably-fair"
+  string risk_level = 3;    // "low", "medium", "high"
+  string strategy_ref = 4;  // compact strategy text (BJ chart / poker ranges)
+  repeated string tips = 5;
+}
+
+message WatchStateRequest {}
+message StateUpdate {
+  string event = 1;
+  string casino_id = 2;
+  double current_bankroll = 3;
+  double total_ev_actual = 4;
+  int32 done_count = 5;
+  int32 total_casinos = 6;
+  string timestamp = 7;
+}
+
+// ── Shared types ────────────────────────────────────────────────────────────
+
+message CasinoInfo {
+  string id = 1;
+  string name = 2;
+  int32 priority = 3;
+  string tier = 4;
+  string url = 5;
+  string bonus_type = 6;
+  double bonus_amount = 7;
+  double wager = 8;
+  double max_cashout = 9;
+  int32 expiry_days = 10;
+  string best_game_name = 11;
+  double best_game_rtp = 12;
+  repeated string deposit_methods = 13;
+  repeated string withdrawal_methods = 14;
+  int32 withdrawal_speed_minutes = 15;
+  bool kyc_required = 16;
+  bool spid_required = 17;
+  string jurisdiction = 18;
+  string notes = 19;
+  double ev = 20;
+}
+
+message CasinoStatus {
+  string id = 1;
+  string name = 2;
+  int32 priority = 3;
+  string tier = 4;
+  string status = 5;
+  double ev = 6;
+  double ev_actual = 7;
+  double input_amount = 8;
+  double output_amount = 9;
+}
+
+message BannedInfo {
+  string id = 1;
+  string name = 2;
+  string reason = 3;
+}
+
+message StepLogEntry {
+  string casino_id = 1;
+  string casino_name = 2;
+  string timestamp = 3;
+  double input = 4;
+  double output = 5;
+  double ev = 6;
+}
