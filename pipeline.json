@@ -1,0 +1,471 @@
+{
+  "version": "1.0",
+  "updated": "2026-03-17",
+  "casinos": [
+    {
+      "id": "bc-game",
+      "name": "BC.Game",
+      "priority": 1,
+      "tier": "crypto-nokyo",
+      "url": "https://bc.game",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 3.0,
+        "currency": "USD",
+        "wager": 0,
+        "max_cashout": 50,
+        "expiry_days": 7
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC", "150+ crypto"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 5,
+        "min_withdrawal": 5
+      },
+      "best_game": {
+        "name": "BC Originals (provably fair)",
+        "rtp": 0.99
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "0x wager su tutto. Originals al 99% RTP. Prelievo crypto istantaneo."
+    },
+    {
+      "id": "bc-poker",
+      "name": "BC Poker",
+      "priority": 2,
+      "tier": "crypto-nokyo",
+      "url": "https://bc.game/poker",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 10.0,
+        "currency": "USD",
+        "wager": 0,
+        "max_cashout": 100,
+        "expiry_days": 14
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 5,
+        "min_withdrawal": 5
+      },
+      "best_game": {
+        "name": "Poker (skill game)",
+        "rtp": 1.0
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "$10 free poker. Unico gioco dove l'abilità conta davvero. EV dipende dalla tua skill."
+    },
+    {
+      "id": "bitstarz",
+      "name": "BitStarz",
+      "priority": 3,
+      "tier": "crypto-nokyo",
+      "url": "https://bitstarz.com",
+      "bonus": {
+        "type": "no-deposit-freespins",
+        "amount": 20,
+        "currency": "FS",
+        "spin_value": 0.10,
+        "wager": 40,
+        "max_cashout": 100,
+        "expiry_days": 5
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC", "BCH"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 10,
+        "min_withdrawal": 20
+      },
+      "best_game": {
+        "name": "Blood Suckers (NetEnt)",
+        "rtp": 0.98
+      },
+      "best_game_alt": {
+        "name": "1429 Uncharted Seas (Thunderkick)",
+        "rtp": 0.986
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "20 FS no-dep. Usa Blood Suckers o 1429 Uncharted Seas. BTC prelievo <10min."
+    },
+    {
+      "id": "winzio",
+      "name": "Winz.io",
+      "priority": 4,
+      "tier": "crypto-nokyo",
+      "url": "https://winz.io",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 0,
+        "currency": "USD",
+        "wager": 0,
+        "notes": "bonus variabile, 0x su tutto",
+        "max_cashout": 200,
+        "expiry_days": 7
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 5,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slot dedicata Winz",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "0x wager su tutti i bonus. Uno dei migliori crypto casino."
+    },
+    {
+      "id": "leovegas-it",
+      "name": "LeoVegas IT (SPID)",
+      "priority": 5,
+      "tier": "adm-italy",
+      "url": "https://leovegas.it",
+      "bonus": {
+        "type": "no-deposit-freespins",
+        "amount": 100,
+        "currency": "FS",
+        "spin_value": 0.10,
+        "wager": 1,
+        "max_cashout": 200,
+        "expiry_days": 30
+      },
+      "payment": {
+        "deposit": ["PayPal", "Visa", "Mastercard", "Skrill", "Neteller", "Bonifico"],
+        "withdrawal": ["PayPal", "Skrill", "Neteller", "Bonifico"],
+        "withdrawal_speed_minutes": 60,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Blood Suckers (NetEnt)",
+        "rtp": 0.98
+      },
+      "kyc_required": true,
+      "spid_required": true,
+      "jurisdiction": "adm",
+      "notes": "RE ASSOLUTO in Italia. 100 FS a 1x wagering. Richiede SPID."
+    },
+    {
+      "id": "betsson-it",
+      "name": "Betsson IT",
+      "priority": 6,
+      "tier": "adm-italy",
+      "url": "https://betsson.it",
+      "bonus": {
+        "type": "deposit",
+        "amount": 200,
+        "currency": "EUR",
+        "match_percent": 100,
+        "wager": 35,
+        "max_cashout": 500,
+        "expiry_days": 30
+      },
+      "payment": {
+        "deposit": ["PayPal", "Visa", "Mastercard", "Skrill", "Neteller"],
+        "withdrawal": ["PayPal", "Skrill", "Neteller"],
+        "withdrawal_speed_minutes": 120,
+        "min_withdrawal": 20
+      },
+      "best_game": {
+        "name": "Blackjack (basic strategy)",
+        "rtp": 0.995
+      },
+      "kyc_required": true,
+      "spid_required": false,
+      "jurisdiction": "adm",
+      "notes": "Migliore ADM senza SPID. €200 bonus. Usa BJ basic strategy per wagering."
+    },
+    {
+      "id": "william-hill-it",
+      "name": "William Hill IT (SPID)",
+      "priority": 7,
+      "tier": "adm-italy",
+      "url": "https://williamhill.it",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 50,
+        "currency": "EUR",
+        "wager": 0,
+        "max_cashout": 50,
+        "expiry_days": 14
+      },
+      "payment": {
+        "deposit": ["PayPal", "Visa", "Mastercard", "Skrill"],
+        "withdrawal": ["PayPal", "Skrill"],
+        "withdrawal_speed_minutes": 60,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slot RTP alto disponibile",
+        "rtp": 0.97
+      },
+      "kyc_required": true,
+      "spid_required": true,
+      "jurisdiction": "adm",
+      "notes": "€50 bonus basso wager. SPID richiesto."
+    },
+    {
+      "id": "betpanda",
+      "name": "BetPanda",
+      "priority": 8,
+      "tier": "crypto-nokyo",
+      "url": "https://betpanda.io",
+      "bonus": {
+        "type": "cashback",
+        "amount": 10,
+        "currency": "PERCENT",
+        "wager": 0,
+        "frequency": "weekly",
+        "max_cashout": 1000,
+        "expiry_days": 7
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 1,
+        "min_withdrawal": 5
+      },
+      "best_game": {
+        "name": "Slot provably fair",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "10% cashback settimanale 0x. Zero KYC assoluto. Prelievo istantaneo."
+    },
+    {
+      "id": "jetton",
+      "name": "JetTon",
+      "priority": 9,
+      "tier": "crypto-nokyo",
+      "url": "https://jetton.io",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 0,
+        "currency": "USD",
+        "notes": "Lucky Wheel bonus, valore variabile",
+        "wager": 3,
+        "max_cashout": 50,
+        "expiry_days": 3
+      },
+      "payment": {
+        "deposit": ["TON", "BTC", "USDT"],
+        "withdrawal": ["TON", "BTC", "USDT"],
+        "withdrawal_speed_minutes": 5,
+        "min_withdrawal": 5
+      },
+      "best_game": {
+        "name": "Slot RTP disponibile",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "Lucky Wheel no-dep. Specialità: TON crypto."
+    },
+    {
+      "id": "vave",
+      "name": "Vave",
+      "priority": 10,
+      "tier": "crypto-nokyo",
+      "url": "https://vave.com",
+      "bonus": {
+        "type": "no-deposit-freespins",
+        "amount": 15,
+        "currency": "FS",
+        "spin_value": 0.10,
+        "wager": 30,
+        "max_cashout": 50,
+        "expiry_days": 5
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 10,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slot RTP alto",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "15 FS no-dep."
+    },
+    {
+      "id": "mbit",
+      "name": "mBit",
+      "priority": 11,
+      "tier": "crypto-nokyo",
+      "url": "https://mbitcasino.io",
+      "bonus": {
+        "type": "no-deposit-freespins",
+        "amount": 50,
+        "currency": "FS",
+        "spin_value": 0.10,
+        "wager": 35,
+        "max_cashout": 100,
+        "expiry_days": 7
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 15,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Blood Suckers (NetEnt)",
+        "rtp": 0.98
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "50 FS no-dep. Generoso ma wager 35x."
+    },
+    {
+      "id": "betflag-it",
+      "name": "Betflag IT",
+      "priority": 12,
+      "tier": "adm-italy",
+      "url": "https://betflag.it",
+      "bonus": {
+        "type": "deposit-tranches",
+        "amount": 3000,
+        "currency": "EUR",
+        "wager": 3,
+        "tranche_size": 200,
+        "max_cashout": 3000,
+        "expiry_days": 60
+      },
+      "payment": {
+        "deposit": ["PayPal", "Visa", "Mastercard", "Skrill"],
+        "withdrawal": ["PayPal"],
+        "withdrawal_speed_minutes": 1,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slot ADM RTP alto",
+        "rtp": 0.97
+      },
+      "kyc_required": true,
+      "spid_required": false,
+      "jurisdiction": "adm",
+      "notes": "€3000 in tranche da €200. Wager 3x per tranche. PayPal 30 SECONDI — prelievo più rapido d'Italia."
+    },
+    {
+      "id": "rollino",
+      "name": "Rollino",
+      "priority": 13,
+      "tier": "crypto-nokyo",
+      "url": "https://rollino.com",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 0,
+        "currency": "USD",
+        "notes": "bonus variabile",
+        "wager": 25,
+        "max_cashout": 50,
+        "expiry_days": 5
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 10,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slot RTP alto",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "Media priorità crypto."
+    },
+    {
+      "id": "donbet",
+      "name": "DonBet",
+      "priority": 14,
+      "tier": "crypto-nokyo",
+      "url": "https://donbet.com",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 0,
+        "currency": "USD",
+        "notes": "bonus variabile",
+        "wager": 25,
+        "max_cashout": 50,
+        "expiry_days": 5
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 10,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slot RTP alto",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "Media priorità crypto."
+    },
+    {
+      "id": "mystake",
+      "name": "MyStake",
+      "priority": 15,
+      "tier": "crypto-nokyo",
+      "url": "https://mystake.com",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 0,
+        "currency": "USD",
+        "notes": "bonus variabile",
+        "wager": 20,
+        "max_cashout": 100,
+        "expiry_days": 7
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 15,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slot RTP alto",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "notes": "Media priorità crypto."
+    }
+  ],
+  "banned": [
+    {"id": "admiralbet", "name": "AdmiralBet IT", "reason": "Dichiara 65x, reale è 100x. TRUFFA."},
+    {"id": "starvegasit", "name": "StarVegas IT", "reason": "Stessa frode di AdmiralBet. BANNATO."},
+    {"id": "betway-it", "name": "Betway IT", "reason": "CHIUSO - riforma ADM novembre 2025"},
+    {"id": "unibet-it", "name": "Unibet IT", "reason": "CHIUSO - riforma ADM novembre 2025"}
+  ],
+  "rules": {
+    "stop_loss_percent": 0.30,
+    "bet_size_percent": 0.01,
+    "reinvest_percent": 1.00,
+    "preferred_games_for_wagering": ["blackjack-basic-strategy", "blood-suckers", "1429-uncharted-seas"],
+    "avoid_games": ["crash", "tower-rush", "fast-slots"],
+    "withdrawal_priority": ["crypto-instant", "paypal", "skrill", "neteller", "bank-wire"]
+  }
+}

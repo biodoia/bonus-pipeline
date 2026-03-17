@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bonus Pipeline 🎰</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --cyan: #00f0ff;
+    --green: #00ff88;
+    --yellow: #ffd700;
+    --red: #ff4466;
+    --purple: #bf7fff;
+    --gray: #555577;
+    --text: #cdd6f4;
+    --text-dim: #6c7086;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; }
+  
+  header { 
+    background: var(--surface); 
+    border-bottom: 1px solid var(--border); 
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  header h1 { font-size: 20px; color: var(--cyan); letter-spacing: 2px; }
+  header span { color: var(--text-dim); font-size: 11px; }
+  
+  .tabs { display: flex; gap: 2px; padding: 12px 24px 0; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tab { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-dim); transition: all 0.2s; font-size: 12px; letter-spacing: 1px; }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+  .tab:hover { color: var(--text); }
+  
+  .page { display: none; padding: 24px; }
+  .page.active { display: block; }
+  
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .card-label { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .card-value { font-size: 24px; font-weight: bold; }
+  .card-value.cyan { color: var(--cyan); }
+  .card-value.green { color: var(--green); }
+  .card-value.yellow { color: var(--yellow); }
+  .card-value.red { color: var(--red); }
+  
+  .casino-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .casino-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .casino-card:hover { border-color: var(--cyan); }
+  .casino-card.done { border-color: var(--green); opacity: 0.7; }
+  .casino-card.active-now { border-color: var(--cyan); box-shadow: 0 0 12px rgba(0,240,255,0.2); }
+  .casino-card.skipped { opacity: 0.4; }
+  .casino-card.next-up { border-color: var(--yellow); box-shadow: 0 0 8px rgba(255,215,0,0.15); }
+  
+  .casino-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .casino-name { font-weight: bold; font-size: 14px; color: var(--text); }
+  .casino-priority { color: var(--text-dim); font-size: 10px; }
+  
+  .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 4px; }
+  .badge-crypto { background: rgba(191,127,255,0.15); color: var(--purple); border: 1px solid rgba(191,127,255,0.3); }
+  .badge-adm { background: rgba(0,240,255,0.1); color: var(--cyan); border: 1px solid rgba(0,240,255,0.2); }
+  .badge-done { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+  .badge-pending { background: rgba(255,215,0,0.1); color: var(--yellow); border: 1px solid rgba(255,215,0,0.2); }
+  .badge-skipped { background: rgba(85,85,119,0.2); color: var(--gray); border: 1px solid rgba(85,85,119,0.3); }
+  
+  .casino-stat { display: flex; justify-content: space-between; margin-top: 4px; }
+  .casino-stat-label { color: var(--text-dim); font-size: 11px; }
+  .casino-stat-value { font-size: 11px; }
+  
+  .ev-positive { color: var(--green); }
+  .ev-neutral { color: var(--yellow); }
+  .ev-negative { color: var(--red); }
+  
+  .casino-link { color: var(--cyan); font-size: 10px; text-decoration: none; }
+  .casino-link:hover { text-decoration: underline; }
+
+  .section-title { font-size: 11px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+  /* EV Calculator */
+  .calc-form { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 600px; margin-bottom: 24px; }
+  .calc-row { display: flex; gap: 16px; margin-bottom: 12px; align-items: center; }
+  .calc-label { color: var(--text-dim); font-size: 11px; min-width: 140px; }
+  input, select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 4px; font-family: inherit; font-size: 12px; width: 200px; }
+  input:focus, select:focus { outline: none; border-color: var(--cyan); }
+  button { background: var(--cyan); color: var(--bg); border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: bold; font-size: 12px; }
+  button:hover { opacity: 0.85; }
+  button.secondary { background: var(--border); color: var(--text); }
+  button.danger { background: var(--red); color: white; }
+  button.success { background: var(--green); color: var(--bg); }
+
+  .result-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; }
+  .result-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .result-total { font-weight: bold; color: var(--cyan); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--cyan); display: flex; justify-content: space-between; }
+
+  /* Chart */
+  .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+  .chart-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; height: 24px; }
+  .chart-bar-label { color: var(--text-dim); font-size: 11px; min-width: 140px; text-align: right; }
+  .chart-bar { height: 20px; border-radius: 3px; background: linear-gradient(90deg, var(--cyan), var(--purple)); min-width: 2px; transition: width 0.5s ease; }
+  .chart-bar-value { font-size: 11px; color: var(--text); min-width: 60px; }
+  
+  /* Modal / Step-by-step */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; }
+  .modal-overlay.open { display: flex; align-items: center; justify-content: center; }
+  .modal { background: var(--surface); border: 1px solid var(--cyan); border-radius: 12px; padding: 24px; max-width: 520px; width: 90%; max-height: 85vh; overflow-y: auto; }
+  .modal-title { font-size: 16px; color: var(--cyan); font-weight: bold; margin-bottom: 4px; }
+  .modal-sub { color: var(--text-dim); font-size: 11px; margin-bottom: 16px; }
+  .steps-list { counter-reset: steps; }
+  .step-item { 
+    counter-increment: steps; 
+    display: flex; gap: 12px; margin-bottom: 12px; 
+  }
+  .step-num { 
+    color: var(--cyan); font-weight: bold; min-width: 24px;
+    font-size: 13px;
+  }
+  .step-text { color: var(--text); font-size: 12px; line-height: 1.5; }
+  .step-text .highlight { color: var(--yellow); font-weight: bold; }
+  .step-text .code { color: var(--green); font-family: monospace; background: var(--bg); padding: 1px 6px; border-radius: 3px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* State panel */
+  .state-actions { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .done-form { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; max-width: 480px; margin-bottom: 24px; display: none; }
+  .done-form.open { display: block; }
+  .done-form h3 { color: var(--cyan); font-size: 13px; margin-bottom: 12px; }
+  
+  /* Banned */
+  .banned-list { }
+  .banned-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .banned-name { color: var(--red); min-width: 160px; }
+  .banned-reason { color: var(--text-dim); font-size: 11px; }
+
+  /* Pipeline chain visual */
+  .chain { display: flex; align-items: center; flex-wrap: wrap; gap: 0; margin-bottom: 24px; }
+  .chain-node {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 12px; font-size: 11px;
+    min-width: 90px; text-align: center;
+  }
+  .chain-node.done-node { border-color: var(--green); color: var(--green); }
+  .chain-node.next-node { border-color: var(--yellow); color: var(--yellow); box-shadow: 0 0 8px rgba(255,215,0,0.2); }
+  .chain-node.pending-node { color: var(--text-dim); }
+  .chain-arrow { color: var(--gray); padding: 0 4px; font-size: 16px; }
+  .chain-amount { font-size: 10px; color: var(--text-dim); }
+  
+  .scrollable { overflow-x: auto; }
+  
+  #notification { 
+    position: fixed; bottom: 24px; right: 24px; 
+    background: var(--green); color: var(--bg); 
+    padding: 12px 20px; border-radius: 8px; font-weight: bold;
+    display: none; z-index: 200;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💰 BONUS PIPELINE</h1>
+  <span>Casino Bonus Hunting Optimizer · Marzo 2026</span>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <button class="secondary" onclick="importState()">📥 Import State</button>
+    <button class="secondary" onclick="exportState()">📤 Export State</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('dashboard')">DASHBOARD</div>
+  <div class="tab" onclick="showTab('pipeline')">PIPELINE</div>
+  <div class="tab" onclick="showTab('casinos')">CASINO</div>
+  <div class="tab" onclick="showTab('calculator')">EV CALC</div>
+  <div class="tab" onclick="showTab('manage')">GESTIONE</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="cards" id="metric-cards"></div>
+  
+  <div class="section-title">CATENA DI REINVESTIMENTO</div>
+  <div class="scrollable">
+    <div class="chain" id="pipeline-chain"></div>
+  </div>
+  
+  <div class="section-title">PROSSIMA MOSSA</div>
+  <div id="next-casino-panel"></div>
+
+  <div class="section-title">BANKROLL EVOLUTION</div>
+  <div class="chart-container" id="bankroll-chart">
+    <div style="color:var(--text-dim);font-size:12px">Nessun dato ancora. Inizia la pipeline!</div>
+  </div>
+</div>
+
+<!-- PIPELINE -->
+<div class="page" id="page-pipeline">
+  <div class="section-title">STEP-BY-STEP PIPELINE</div>
+  <div id="pipeline-steps"></div>
+</div>
+
+<!-- CASINOS -->
+<div class="page" id="page-casinos">
+  <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="secondary" onclick="filterCasinos('all')">Tutti</button>
+    <button class="secondary" onclick="filterCasinos('crypto-nokyo')">Crypto No-KYC</button>
+    <button class="secondary" onclick="filterCasinos('adm-italy')">ADM Italia</button>
+    <button class="secondary" onclick="filterCasinos('nodep')">No-Deposit</button>
+  </div>
+  <div class="casino-grid" id="casino-grid"></div>
+  
+  <div class="section-title" style="margin-top:32px">BANNATI ⛔</div>
+  <div class="banned-list" id="banned-list"></div>
+</div>
+
+<!-- EV CALCULATOR -->
+<div class="page" id="page-calculator">
+  <div class="section-title">CALCOLATORE EV SINGOLO CASINO</div>
+  <div class="calc-form">
+    <div class="calc-row">
+      <span class="calc-label">Casino</span>
+      <select id="calc-casino" onchange="prefillCalc()">
+        <option value="">Scegli casino...</option>
+      </select>
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">Bonus (€)</span>
+      <input type="number" id="calc-bonus" value="20" min="0">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">Wagering (x)</span>
+      <input type="number" id="calc-wager" value="30" min="0">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">RTP gioco (%)</span>
+      <input type="number" id="calc-rtp" value="98" min="80" max="100" step="0.1">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">Bankroll attuale (€)</span>
+      <input type="number" id="calc-bankroll" value="100" min="0">
+    </div>
+    <button onclick="calculateEV()">Calcola EV</button>
+    <div class="result-box" id="ev-result" style="display:none"></div>
+  </div>
+
+  <div class="section-title">SIMULAZIONE REINVESTIMENTO COMPLETO</div>
+  <div class="calc-form">
+    <div class="calc-row">
+      <span class="calc-label">Bankroll iniziale (€)</span>
+      <input type="number" id="sim-bankroll" value="100">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">RTP override (%)</span>
+      <input type="number" id="sim-rtp" value="98" step="0.1">
+      <span style="color:var(--text-dim);font-size:10px;margin-left:8px">lascia 98% per slot, 99.5% per BJ</span>
+    </div>
+    <button onclick="simulatePipeline()">Simula intera pipeline</button>
+    <div id="sim-result" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- GESTIONE -->
+<div class="page" id="page-manage">
+  <div class="section-title">STATO PIPELINE</div>
+  <div class="state-actions">
+    <div>
+      <span class="calc-label" style="display:inline">Bankroll iniziale: </span>
+      <input type="number" id="init-bankroll" placeholder="100" style="width:100px;display:inline">
+      <button onclick="initPipeline()">🚀 Inizializza</button>
+    </div>
+    <button class="danger" onclick="resetPipeline()">♻ Reset</button>
+  </div>
+
+  <div class="section-title">AGGIORNA CASINO</div>
+  <div class="done-form open" id="done-form">
+    <h3>Segna casino come completato</h3>
+    <div class="calc-row">
+      <span class="calc-label">Casino</span>
+      <select id="done-casino-select" style="width:200px"></select>
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">Risultato (€)</span>
+      <input type="number" id="done-result" placeholder="es: 45.50" style="width:120px">
+    </div>
+    <div class="calc-row">
+      <span class="calc-label">Note</span>
+      <input type="text" id="done-notes" placeholder="opzionale" style="width:200px">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="success" onclick="markDone()">✓ Completato</button>
+      <button class="secondary" onclick="markSkipped()">⊘ Salta</button>
+    </div>
+  </div>
+
+  <div class="section-title">STORICO</div>
+  <div id="history-table"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="steps-list" id="modal-steps"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<div id="notification"></div>
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+
+const CASINOS = [
+  { id:'bc-game', name:'BC.Game', priority:1, tier:'crypto-nokyo', url:'https://bc.game',
+    bonus:{type:'no-deposit',amount:3,currency:'USD',wager:0,maxCashout:50},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:5},
+    bestGame:{name:'BC Originals (provably fair)',rtp:0.99},
+    kyc:false, spid:false,
+    notes:'0x wager su tutto. Originals 99% RTP. Prelievo istantaneo.' },
+
+  { id:'bc-poker', name:'BC Poker', priority:2, tier:'crypto-nokyo', url:'https://bc.game/poker',
+    bonus:{type:'no-deposit',amount:10,currency:'USD',wager:0,maxCashout:100},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:5},
+    bestGame:{name:'Poker (skill game)',rtp:1.0},
+    kyc:false, spid:false,
+    notes:'$10 free. Unico gioco dove conta la skill. EV dipende dalla tua abilità.' },
+
+  { id:'bitstarz', name:'BitStarz', priority:3, tier:'crypto-nokyo', url:'https://bitstarz.com',
+    bonus:{type:'no-deposit-freespins',amount:20,currency:'FS',spinValue:0.10,wager:40,maxCashout:100},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:10},
+    bestGame:{name:'Blood Suckers (NetEnt)',rtp:0.98},
+    kyc:false, spid:false,
+    notes:'20 FS no-dep. Blood Suckers o 1429 Uncharted Seas. BTC <10 min.' },
+
+  { id:'winzio', name:'Winz.io', priority:4, tier:'crypto-nokyo', url:'https://winz.io',
+    bonus:{type:'no-deposit',amount:0,currency:'USD',wager:0,maxCashout:200,notes:'variabile'},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:5},
+    bestGame:{name:'Slot dedicata',rtp:0.97},
+    kyc:false, spid:false,
+    notes:'0x wager su tutto. Uno dei migliori crypto casino.' },
+
+  { id:'leovegas-it', name:'LeoVegas IT', priority:5, tier:'adm-italy', url:'https://leovegas.it',
+    bonus:{type:'no-deposit-freespins',amount:100,currency:'FS',spinValue:0.10,wager:1,maxCashout:200},
+    payment:{withdrawal:['PayPal','Skrill'],speedMin:60},
+    bestGame:{name:'Blood Suckers (NetEnt)',rtp:0.98},
+    kyc:true, spid:true,
+    notes:'RE ASSOLUTO IT. 100 FS a 1x wagering. SPID richiesto.' },
+
+  { id:'betsson-it', name:'Betsson IT', priority:6, tier:'adm-italy', url:'https://betsson.it',
+    bonus:{type:'deposit',amount:200,currency:'EUR',wager:35,matchPct:100,maxCashout:500},
+    payment:{withdrawal:['PayPal','Skrill'],speedMin:120},
+    bestGame:{name:'Blackjack basic strategy',rtp:0.995},
+    kyc:true, spid:false,
+    notes:'Migliore ADM senza SPID. €200 bonus. Usa BJ basic strategy per wagering.' },
+
+  { id:'william-hill-it', name:'William Hill IT', priority:7, tier:'adm-italy', url:'https://williamhill.it',
+    bonus:{type:'no-deposit',amount:50,currency:'EUR',wager:0,maxCashout:50},
+    payment:{withdrawal:['PayPal','Skrill'],speedMin:60},
+    bestGame:{name:'Slot RTP alto',rtp:0.97},
+    kyc:true, spid:true,
+    notes:'€50 bonus 0x. SPID richiesto.' },
+
+  { id:'betpanda', name:'BetPanda', priority:8, tier:'crypto-nokyo', url:'https://betpanda.io',
+    bonus:{type:'cashback',amount:10,currency:'%',wager:0,maxCashout:1000},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:1},
+    bestGame:{name:'Slot provably fair',rtp:0.97},
+    kyc:false, spid:false,
+    notes:'10% cashback settimanale 0x. Zero KYC. Prelievo istantaneo.' },
+
+  { id:'jetton', name:'JetTon', priority:9, tier:'crypto-nokyo', url:'https://jetton.io',
+    bonus:{type:'no-deposit',amount:0,currency:'USD',wager:3,maxCashout:50,notes:'Lucky Wheel'},
+    payment:{withdrawal:['TON','BTC','USDT'],speedMin:5},
+    bestGame:{name:'Slot disponibile',rtp:0.97},
+    kyc:false, spid:false,
+    notes:'Lucky Wheel no-dep. Specialità: TON crypto.' },
+
+  { id:'vave', name:'Vave', priority:10, tier:'crypto-nokyo', url:'https://vave.com',
+    bonus:{type:'no-deposit-freespins',amount:15,currency:'FS',spinValue:0.10,wager:30,maxCashout:50},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:10},
+    bestGame:{name:'Slot RTP alto',rtp:0.97},
+    kyc:false, spid:false,
+    notes:'15 FS no-dep.' },
+
+  { id:'mbit', name:'mBit', priority:11, tier:'crypto-nokyo', url:'https://mbitcasino.io',
+    bonus:{type:'no-deposit-freespins',amount:50,currency:'FS',spinValue:0.10,wager:35,maxCashout:100},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:15},
+    bestGame:{name:'Blood Suckers (NetEnt)',rtp:0.98},
+    kyc:false, spid:false,
+    notes:'50 FS no-dep. Generoso ma wager 35x.' },
+
+  { id:'betflag-it', name:'Betflag IT', priority:12, tier:'adm-italy', url:'https://betflag.it',
+    bonus:{type:'deposit-tranches',amount:3000,currency:'EUR',wager:3,trancheSize:200,maxCashout:3000},
+    payment:{withdrawal:['PayPal'],speedMin:1},
+    bestGame:{name:'Slot ADM RTP alto',rtp:0.97},
+    kyc:true, spid:false,
+    notes:'€3000 in tranche €200. Wager 3x per tranche. PayPal 30 SECONDI!' },
+
+  { id:'rollino', name:'Rollino', priority:13, tier:'crypto-nokyo', url:'https://rollino.com',
+    bonus:{type:'no-deposit',amount:0,currency:'USD',wager:25,maxCashout:50},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:10},
+    bestGame:{name:'Slot RTP alto',rtp:0.97},
+    kyc:false, spid:false, notes:'Media priorità.' },
+
+  { id:'donbet', name:'DonBet', priority:14, tier:'crypto-nokyo', url:'https://donbet.com',
+    bonus:{type:'no-deposit',amount:0,currency:'USD',wager:25,maxCashout:50},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:10},
+    bestGame:{name:'Slot RTP alto',rtp:0.97},
+    kyc:false, spid:false, notes:'Media priorità.' },
+
+  { id:'mystake', name:'MyStake', priority:15, tier:'crypto-nokyo', url:'https://mystake.com',
+    bonus:{type:'no-deposit',amount:0,currency:'USD',wager:20,maxCashout:100},
+    payment:{withdrawal:['BTC','ETH','USDT'],speedMin:15},
+    bestGame:{name:'Slot RTP alto',rtp:0.97},
+    kyc:false, spid:false, notes:'Media priorità.' },
+];
+
+const BANNED = [
+  {name:'AdmiralBet IT', reason:'Dichiara 65x, reale è 100x — FRODE'},
+  {name:'StarVegas IT', reason:'Stessa frode di AdmiralBet — BANNATO'},
+  {name:'Betway IT', reason:'CHIUSO — riforma ADM novembre 2025'},
+  {name:'Unibet IT', reason:'CHIUSO — riforma ADM novembre 2025'},
+];
+
+// ── State ────────────────────────────────────────────────────────────────────
+
+function loadState() {
+  try {
+    return JSON.parse(localStorage.getItem('pipeline-state')) || {
+      initialBankroll: 0, currentBankroll: 0,
+      casinos: {}, steps: [], totalEVActual: 0
+    };
+  } catch(e) { return {initialBankroll:0,currentBankroll:0,casinos:{},steps:[],totalEVActual:0}; }
+}
+
+function saveState(s) {
+  localStorage.setItem('pipeline-state', JSON.stringify(s));
+}
+
+// ── EV Math ───────────────────────────────────────────────────────────────────
+
+function calcBonusValue(c) {
+  if (c.bonus.type === 'no-deposit') return c.bonus.amount || 0;
+  if (c.bonus.type === 'no-deposit-freespins') return (c.bonus.amount || 0) * (c.bonus.spinValue || 0.10);
+  if (c.bonus.type === 'deposit') return c.bonus.amount || 0;
+  if (c.bonus.type === 'deposit-tranches') return c.bonus.trancheSize || 0;
+  return 0;
+}
+
+function calcEV(c, bankroll) {
+  const bonus = calcBonusValue(c);
+  if (bonus <= 0) return 0;
+  const rtp = c.bestGame.rtp || 0.97;
+  const houseEdge = 1 - rtp;
+  const wager = c.bonus.wager || 0;
+  if (wager === 0) {
+    return Math.min(bonus, c.bonus.maxCashout || bonus);
+  }
+  const wagerAmt = wager * bonus;
+  const expectedLoss = wagerAmt * houseEdge;
+  let ev = bonus - expectedLoss;
+  if (c.bonus.maxCashout && ev > c.bonus.maxCashout) ev = c.bonus.maxCashout;
+  return ev;
+}
+
+function evClass(ev) {
+  if (ev > 5) return 'ev-positive';
+  if (ev > 0) return 'ev-neutral';
+  return 'ev-negative';
+}
+
+function evStr(ev) {
+  return (ev >= 0 ? '+' : '') + '€' + ev.toFixed(2);
+}
+
+function getStatus(c, state) {
+  return (state.casinos[c.id] || {}).status || 'pending';
+}
+
+function getNextCasino(state) {
+  return CASINOS.find(c => {
+    const s = getStatus(c, state);
+    return s === 'pending' || s === 'active';
+  });
+}
+
+// ── Render Dashboard ──────────────────────────────────────────────────────────
+
+function renderDashboard() {
+  const state = loadState();
+  const next = getNextCasino(state);
+  const done = CASINOS.filter(c => getStatus(c, state) === 'done').length;
+  const pnl = state.currentBankroll - state.initialBankroll;
+
+  // Metric cards
+  document.getElementById('metric-cards').innerHTML = `
+    <div class="card"><div class="card-label">Bankroll Attuale</div>
+      <div class="card-value cyan">€${(state.currentBankroll||0).toFixed(2)}</div></div>
+    <div class="card"><div class="card-label">P&L Totale</div>
+      <div class="card-value ${pnl>=0?'green':'red'}">${evStr(pnl)}</div></div>
+    <div class="card"><div class="card-label">Casino Completati</div>
+      <div class="card-value yellow">${done}/${CASINOS.length}</div></div>
+    <div class="card"><div class="card-label">EV Reale Accumulato</div>
+      <div class="card-value ${state.totalEVActual>=0?'green':'red'}">${evStr(state.totalEVActual||0)}</div></div>
+  `;
+
+  // Chain
+  const chain = document.getElementById('pipeline-chain');
+  chain.innerHTML = '';
+  CASINOS.forEach((c, i) => {
+    const s = getStatus(c, state);
+    const cs = state.casinos[c.id] || {};
+    let cls = 'pending-node';
+    let label = '○';
+    if (s === 'done') { cls = 'done-node'; label = '✓'; }
+    else if (next && next.id === c.id) { cls = 'next-node'; label = '►'; }
+
+    const node = document.createElement('div');
+    node.className = 'chain-node ' + cls;
+    node.innerHTML = `${label} ${c.name}<br><span class="chain-amount">EV ${evStr(calcEV(c, state.currentBankroll))}</span>`;
+    chain.appendChild(node);
+
+    if (i < CASINOS.length - 1) {
+      const arrow = document.createElement('div');
+      arrow.className = 'chain-arrow';
+      arrow.textContent = '→';
+      chain.appendChild(arrow);
+    }
+  });
+
+  // Next casino panel
+  const panel = document.getElementById('next-casino-panel');
+  if (!state.initialBankroll) {
+    panel.innerHTML = `<div style="color:var(--yellow);padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+      ⚠ Pipeline non inizializzata. Vai su <strong>GESTIONE</strong> e inserisci il bankroll iniziale.
+    </div>`;
+  } else if (next) {
+    const ev = calcEV(next, state.currentBankroll);
+    const bonus = calcBonusValue(next);
+    const betSize = Math.max(bonus * 0.01, 0.10);
+    panel.innerHTML = `
+      <div class="casino-card active-now" onclick="showSteps('${next.id}')">
+        <div class="casino-header">
+          <div><div class="casino-name">▶ ${next.name}</div>
+          <div style="margin-top:4px">
+            <span class="badge badge-${next.tier==='crypto-nokyo'?'crypto':'adm'}">${next.tier==='crypto-nokyo'?'Crypto No-KYC':'ADM Italia'}</span>
+            <span class="badge badge-pending">PROSSIMO</span>
+          </div></div>
+          <a href="${next.url}" target="_blank" class="casino-link" onclick="event.stopPropagation()">→ Apri</a>
+        </div>
+        <div class="casino-stat"><span class="casino-stat-label">Bonus</span><span class="casino-stat-value">€${bonus.toFixed(2)} (${next.bonus.type})</span></div>
+        <div class="casino-stat"><span class="casino-stat-label">Wagering</span><span class="casino-stat-value">${next.bonus.wager}x</span></div>
+        <div class="casino-stat"><span class="casino-stat-label">EV esperato</span><span class="casino-stat-value ${evClass(ev)}">${evStr(ev)}</span></div>
+        <div class="casino-stat"><span class="casino-stat-label">Miglior gioco</span><span class="casino-stat-value">${next.bestGame.name}</span></div>
+        <div class="casino-stat"><span class="casino-stat-label">Bet size</span><span class="casino-stat-value" style="color:var(--yellow)">€${betSize.toFixed(2)}/spin</span></div>
+        <div class="casino-stat"><span class="casino-stat-label">Prelievo</span><span class="casino-stat-value">${next.payment.withdrawal.join(', ')} (~${next.payment.speedMin}min)</span></div>
+        <div style="margin-top:12px;color:var(--cyan);font-size:11px">Clicca per step-by-step dettagliati →</div>
+      </div>`;
+  } else {
+    panel.innerHTML = `<div style="color:var(--green);padding:16px;font-size:16px">🎉 Pipeline completata!</div>`;
+  }
+
+  // Bankroll chart
+  const chart = document.getElementById('bankroll-chart');
+  if (state.steps && state.steps.length > 0) {
+    const maxVal = Math.max(...state.steps.map(s => s.output), state.initialBankroll);
+    let html = '';
+    html += `<div class="chart-bar-row">
+      <span class="chart-bar-label">Start</span>
+      <div class="chart-bar" style="width:${(state.initialBankroll/maxVal*300)}px"></div>
+      <span class="chart-bar-value">€${state.initialBankroll.toFixed(2)}</span>
+    </div>`;
+    state.steps.forEach(s => {
+      const w = Math.max(s.output/maxVal*300, 2);
+      const col = s.output >= s.input ? 'var(--green)' : 'var(--red)';
+      html += `<div class="chart-bar-row">
+        <span class="chart-bar-label">${s.casinoName}</span>
+        <div class="chart-bar" style="width:${w}px;background:${col}"></div>
+        <span class="chart-bar-value ${evClass(s.output-s.input)}">€${s.output.toFixed(2)}</span>
+      </div>`;
+    });
+    chart.innerHTML = html;
+  }
+}
+
+// ── Render Pipeline Steps ─────────────────────────────────────────────────────
+
+function renderPipeline() {
+  const state = loadState();
+  const el = document.getElementById('pipeline-steps');
+  let html = '';
+  CASINOS.forEach((c, i) => {
+    const status = getStatus(c, state);
+    const cs = state.casinos[c.id] || {};
+    const ev = calcEV(c, state.currentBankroll);
+    const bonus = calcBonusValue(c);
+    let statusBadge = `<span class="badge badge-pending">PENDING</span>`;
+    if (status === 'done') statusBadge = `<span class="badge badge-done">✓ DONE</span>`;
+    else if (status === 'skipped') statusBadge = `<span class="badge badge-skipped">SKIPPED</span>`;
+
+    html += `<div style="display:flex;gap:16px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="color:var(--text-dim);min-width:24px;font-size:20px;font-weight:bold">${c.priority}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-weight:bold">${c.name}</span>
+          ${statusBadge}
+          <span class="badge badge-${c.tier==='crypto-nokyo'?'crypto':'adm'}">${c.tier==='crypto-nokyo'?'Crypto':'ADM'}</span>
+        </div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap">
+          <span style="color:var(--text-dim);font-size:11px">Bonus: <span style="color:var(--text)">€${bonus.toFixed(2)}</span></span>
+          <span style="color:var(--text-dim);font-size:11px">Wager: <span style="color:var(--text)">${c.bonus.wager}x</span></span>
+          <span style="color:var(--text-dim);font-size:11px">EV: <span class="${evClass(ev)}">${evStr(ev)}</span></span>
+          <span style="color:var(--text-dim);font-size:11px">Gioco: <span style="color:var(--text)">${c.bestGame.name} (${(c.bestGame.rtp*100).toFixed(1)}%)</span></span>
+        </div>
+        ${status === 'done' ? `<div style="color:var(--green);font-size:11px;margin-top:4px">Input: €${cs.inputAmount?.toFixed(2)} → Output: €${cs.outputAmount?.toFixed(2)} (${evStr(cs.evActual||0)})</div>` : ''}
+      </div>
+      <button class="secondary" style="font-size:11px;padding:4px 10px" onclick="showSteps('${c.id}')">Steps →</button>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── Render Casinos ────────────────────────────────────────────────────────────
+
+function renderCasinos(filter = 'all') {
+  const state = loadState();
+  const grid = document.getElementById('casino-grid');
+  const filtered = CASINOS.filter(c => {
+    if (filter === 'all') return true;
+    if (filter === 'nodep') return c.bonus.type.includes('no-deposit');
+    return c.tier === filter;
+  });
+
+  grid.innerHTML = filtered.map(c => {
+    const status = getStatus(c, state);
+    const ev = calcEV(c, state.currentBankroll);
+    const bonus = calcBonusValue(c);
+    let cardClass = '';
+    if (status === 'done') cardClass = 'done';
+    else if (status === 'skipped') cardClass = 'skipped';
+    else if (getNextCasino(state)?.id === c.id) cardClass = 'next-up';
+
+    return `<div class="casino-card ${cardClass}" onclick="showSteps('${c.id}')">
+      <div class="casino-header">
+        <div>
+          <div class="casino-name">${c.name}</div>
+          <div style="margin-top:4px">
+            <span class="badge badge-${c.tier==='crypto-nokyo'?'crypto':'adm'}">${c.tier==='crypto-nokyo'?'Crypto No-KYC':'ADM IT'}</span>
+            ${status==='done'?'<span class="badge badge-done">✓</span>':''}
+          </div>
+        </div>
+        <a href="${c.url}" target="_blank" class="casino-link" onclick="event.stopPropagation()">→ Apri</a>
+      </div>
+      <div class="casino-stat"><span class="casino-stat-label">Bonus</span><span class="casino-stat-value">€${bonus.toFixed(2)} (${c.bonus.type})</span></div>
+      <div class="casino-stat"><span class="casino-stat-label">Wagering</span><span class="casino-stat-value">${c.bonus.wager}x</span></div>
+      <div class="casino-stat"><span class="casino-stat-label">EV</span><span class="casino-stat-value ${evClass(ev)}">${evStr(ev)}</span></div>
+      <div class="casino-stat"><span class="casino-stat-label">Prelievo</span><span class="casino-stat-value">${c.payment.withdrawal[0]} (~${c.payment.speedMin}m)</span></div>
+      <div class="casino-stat"><span class="casino-stat-label">RTP gioco</span><span class="casino-stat-value">${(c.bestGame.rtp*100).toFixed(1)}%</span></div>
+      ${c.spid ? '<div style="color:var(--yellow);font-size:10px;margin-top:4px">⚠ SPID richiesto</div>' : ''}
+      <div style="color:var(--text-dim);font-size:10px;margin-top:6px">${c.notes}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('banned-list').innerHTML = BANNED.map(b =>
+    `<div class="banned-item"><span class="banned-name">✗ ${b.name}</span><span class="banned-reason">${b.reason}</span></div>`
+  ).join('');
+}
+
+function filterCasinos(f) { renderCasinos(f); }
+
+// ── Show Steps Modal ──────────────────────────────────────────────────────────
+
+function showSteps(casinoId) {
+  const c = CASINOS.find(x => x.id === casinoId);
+  if (!c) return;
+  const state = loadState();
+  const ev = calcEV(c, state.currentBankroll);
+  const bonus = calcBonusValue(c);
+  const betSize = Math.max(bonus * 0.01, 0.10);
+  const wagerTarget = c.bonus.wager * bonus;
+
+  const steps = [];
+  steps.push(`<span class="highlight">Registrati su</span> <a href="${c.url}" target="_blank" style="color:var(--cyan)">${c.url}</a>`);
+  if (c.spid) steps.push(`<span class="highlight">Accedi con SPID</span> — necessario per attivare il bonus ADM`);
+  
+  if (c.bonus.type.includes('no-deposit')) {
+    steps.push(`<span class="highlight">Riscatta il bonus NO-DEPOSIT</span> — nessun deposito richiesto`);
+  } else if (c.bonus.type === 'deposit') {
+    steps.push(`<span class="highlight">Deposita €${Math.min(state.currentBankroll, c.bonus.amount).toFixed(2)}</span> per attivare il bonus`);
+  } else if (c.bonus.type === 'deposit-tranches') {
+    steps.push(`<span class="highlight">Deposita €${c.bonus.trancheSize}</span> (prima tranche di €${c.bonus.amount} totali)`);
+  }
+  
+  steps.push(`Gioca su: <span class="highlight">${c.bestGame.name}</span> — RTP <span class="code">${(c.bestGame.rtp*100).toFixed(1)}%</span>`);
+  steps.push(`Bet size: <span class="highlight code">€${betSize.toFixed(2)}</span> per spin/mano — MAI di più (1% del bonus)`);
+  
+  if (c.bonus.wager > 0) {
+    steps.push(`Obiettivo wagering: <span class="code">€${wagerTarget.toFixed(2)}</span> giocate totali (${c.bonus.wager}x × €${bonus.toFixed(2)})`);
+    steps.push(`Stop-loss: se saldo scende sotto <span class="code">€${(bonus * 0.30).toFixed(2)}</span> → <span class="highlight">ABBANDONA</span>`);
+  }
+  
+  steps.push(`Preleva su: <span class="highlight">${c.payment.withdrawal.join(' o ')}</span> (~${c.payment.speedMin} minuti)`);
+  steps.push(`Aggiorna il tracker: torna su <span class="code">GESTIONE</span> e segna il risultato`);
+
+  document.getElementById('modal-title').textContent = c.name;
+  document.getElementById('modal-sub').innerHTML = `EV atteso: <span class="${evClass(ev)}">${evStr(ev)}</span> · Bankroll in: €${(state.currentBankroll||0).toFixed(2)} · Output atteso: €${((state.currentBankroll||0)+ev).toFixed(2)}`;
+  document.getElementById('modal-steps').innerHTML = steps.map((s,i) =>
+    `<div class="step-item"><span class="step-num">${i+1}.</span><span class="step-text">${s}</span></div>`
+  ).join('');
+  document.getElementById('modal-actions').innerHTML = `
+    <a href="${c.url}" target="_blank"><button>🔗 Apri ${c.name}</button></a>
+    <button class="secondary" onclick="closeModal()">Chiudi</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ── EV Calculator ─────────────────────────────────────────────────────────────
+
+function prefillCalc() {
+  const id = document.getElementById('calc-casino').value;
+  const c = CASINOS.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('calc-bonus').value = calcBonusValue(c).toFixed(2);
+  document.getElementById('calc-wager').value = c.bonus.wager;
+  document.getElementById('calc-rtp').value = (c.bestGame.rtp * 100).toFixed(1);
+}
+
+function calculateEV() {
+  const bonus = parseFloat(document.getElementById('calc-bonus').value) || 0;
+  const wager = parseFloat(document.getElementById('calc-wager').value) || 0;
+  const rtp = parseFloat(document.getElementById('calc-rtp').value) / 100;
+  const bankroll = parseFloat(document.getElementById('calc-bankroll').value) || 0;
+  const houseEdge = 1 - rtp;
+  const wagerAmt = wager * bonus;
+  const expectedLoss = wagerAmt * houseEdge;
+  const ev = bonus - expectedLoss;
+  const betSize = Math.max(bonus * 0.01, 0.10);
+
+  const box = document.getElementById('ev-result');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="result-row"><span>Bonus value</span><span>€${bonus.toFixed(2)}</span></div>
+    <div class="result-row"><span>Wagering richiesto</span><span>€${wagerAmt.toFixed(2)} (${wager}x)</span></div>
+    <div class="result-row"><span>House edge</span><span>${(houseEdge*100).toFixed(2)}%</span></div>
+    <div class="result-row"><span>Perdita attesa</span><span style="color:var(--red)">-€${expectedLoss.toFixed(2)}</span></div>
+    <div class="result-total"><span>EV NETTO</span><span class="${evClass(ev)}">${evStr(ev)}</span></div>
+    <div style="margin-top:12px;color:var(--text-dim);font-size:11px">
+      Bet consigliato: <strong style="color:var(--yellow)">€${betSize.toFixed(2)}/spin</strong><br>
+      Output atteso: <strong>€${(bankroll+ev).toFixed(2)}</strong>
+    </div>
+  `;
+}
+
+function simulatePipeline() {
+  const initBankroll = parseFloat(document.getElementById('sim-bankroll').value) || 100;
+  const rtpOverride = parseFloat(document.getElementById('sim-rtp').value) / 100;
+  
+  let bankroll = initBankroll;
+  let totalEV = 0;
+  let html = `<div class="result-box"><div style="font-size:12px;font-weight:bold;color:var(--cyan);margin-bottom:12px">Simulazione con €${initBankroll.toFixed(2)} di partenza:</div>`;
+  
+  CASINOS.forEach(c => {
+    const overrideC = {...c, bestGame: {...c.bestGame, rtp: rtpOverride}};
+    const ev = calcEV(overrideC, bankroll);
+    const prevBankroll = bankroll;
+    bankroll = bankroll + ev;
+    totalEV += ev;
+    html += `<div class="result-row">
+      <span style="font-size:11px">${c.priority}. ${c.name}</span>
+      <span>€${prevBankroll.toFixed(2)} → <strong class="${evClass(ev)}">€${bankroll.toFixed(2)}</strong> (${evStr(ev)})</span>
+    </div>`;
+  });
+  
+  html += `<div class="result-total">
+    <span>FINALE</span>
+    <span>€${bankroll.toFixed(2)} (<span class="${evClass(totalEV)}">${evStr(totalEV)}</span>)</span>
+  </div></div>`;
+  document.getElementById('sim-result').innerHTML = html;
+}
+
+// ── Manage ────────────────────────────────────────────────────────────────────
+
+function initPipeline() {
+  const bankroll = parseFloat(document.getElementById('init-bankroll').value);
+  if (!bankroll || bankroll <= 0) { alert('Inserisci un bankroll valido'); return; }
+  const state = loadState();
+  if (state.initialBankroll > 0) {
+    if (!confirm(`Pipeline già inizializzata (€${state.initialBankroll}). Sovrascrivere?`)) return;
+  }
+  state.initialBankroll = bankroll;
+  state.currentBankroll = bankroll;
+  saveState(state);
+  notify(`Pipeline inizializzata con €${bankroll}!`);
+  renderAll();
+}
+
+function markDone() {
+  const id = document.getElementById('done-casino-select').value;
+  const result = parseFloat(document.getElementById('done-result').value);
+  const notes = document.getElementById('done-notes').value;
+  if (!id) { alert('Scegli un casino'); return; }
+  if (isNaN(result)) { alert('Inserisci il risultato'); return; }
+  
+  const state = loadState();
+  const c = CASINOS.find(x => x.id === id);
+  const cs = state.casinos[id] || {};
+  cs.status = 'done';
+  cs.inputAmount = state.currentBankroll;
+  cs.outputAmount = result;
+  cs.evActual = result - state.currentBankroll;
+  cs.notes = notes;
+  state.casinos[id] = cs;
+  state.steps = state.steps || [];
+  state.steps.push({casinoName: c.name, input: state.currentBankroll, output: result, ev: cs.evActual, at: new Date().toISOString()});
+  state.totalEVActual = (state.totalEVActual||0) + cs.evActual;
+  state.currentBankroll = result;
+  saveState(state);
+  notify(`${c.name} completato! €${result.toFixed(2)}`);
+  document.getElementById('done-result').value = '';
+  document.getElementById('done-notes').value = '';
+  renderAll();
+}
+
+function markSkipped() {
+  const id = document.getElementById('done-casino-select').value;
+  if (!id) { alert('Scegli un casino'); return; }
+  const state = loadState();
+  state.casinos[id] = {...(state.casinos[id]||{}), status: 'skipped'};
+  saveState(state);
+  notify('Casino saltato');
+  renderAll();
+}
+
+function resetPipeline() {
+  if (!confirm('Resettare tutta la pipeline? Tutti i progressi saranno persi.')) return;
+  localStorage.removeItem('pipeline-state');
+  notify('Pipeline resettata');
+  renderAll();
+}
+
+function renderManage() {
+  const state = loadState();
+  const opts = CASINOS.filter(c => getStatus(c,state) !== 'done' && getStatus(c,state) !== 'skipped')
+    .map(c => `<option value="${c.id}">${c.priority}. ${c.name}</option>`).join('');
+  document.getElementById('done-casino-select').innerHTML = opts;
+  
+  let hist = '';
+  if (state.steps && state.steps.length > 0) {
+    hist = state.steps.map(s => `<div style="display:flex;gap:24px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px">
+      <span style="min-width:140px">${s.casinoName}</span>
+      <span style="color:var(--text-dim)">In: €${s.input?.toFixed(2)}</span>
+      <span style="color:var(--text-dim)">Out: €${s.output?.toFixed(2)}</span>
+      <span class="${evClass(s.ev||0)}">${evStr(s.ev||0)}</span>
+    </div>`).join('');
+  } else {
+    hist = '<div style="color:var(--text-dim);font-size:12px">Nessuna sessione registrata.</div>';
+  }
+  document.getElementById('history-table').innerHTML = hist;
+}
+
+// ── Import/Export ─────────────────────────────────────────────────────────────
+
+function exportState() {
+  const state = loadState();
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pipeline-state.json';
+  a.click();
+}
+
+function importState() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const state = JSON.parse(ev.target.result);
+        saveState(state);
+        notify('Stato importato!');
+        renderAll();
+      } catch(e) { alert('File non valido'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ── Tabs & Init ────────────────────────────────────────────────────────────────
+
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelector(`.tab[onclick="showTab('${id}')"]`).classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  else if (id === 'pipeline') renderPipeline();
+  else if (id === 'casinos') renderCasinos();
+  else if (id === 'calculator') initCalcSelects();
+  else if (id === 'manage') renderManage();
+}
+
+function initCalcSelects() {
+  const sel = document.getElementById('calc-casino');
+  if (sel.options.length <= 1) {
+    CASINOS.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+function renderAll() {
+  const active = document.querySelector('.tab.active')?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
+  if (active) showTab(active);
+}
+
+function notify(msg) {
+  const n = document.getElementById('notification');
+  n.textContent = msg;
+  n.style.display = 'block';
+  setTimeout(() => n.style.display = 'none', 3000);
+}
+
+// Init
+renderDashboard();
+initCalcSelects();
+</script>
+</body>
+</html>
