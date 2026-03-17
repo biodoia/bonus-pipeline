@@ -38,7 +38,11 @@ func main() {
 	defer conn.Close()
 
 	client := pb.NewPipelineServiceClient(conn)
-	db, _ = engine.LoadDB(*dataDir + "/pipeline.json")
+	var dbErr error
+	db, dbErr = engine.LoadDB(*dataDir + "/pipeline.json")
+	if dbErr != nil {
+		log.Printf("WARNING: cannot load pipeline.json: %v (guided mode will be unavailable)", dbErr)
+	}
 
 	app := framegotui.NewApp("Bonus Pipeline", framegotui.WithTheme(framegotui.CyberpunkTheme))
 
@@ -264,8 +268,12 @@ func main() {
 		}
 		app.Prompt("Casino ID:", func(id string) {
 			app.Prompt("Importo risultato:", func(amount string) {
-				var result float64
-				fmt.Sscanf(amount, "%f", &result)
+				result, parseErr := strconv.ParseFloat(strings.TrimSpace(amount), 64)
+				if parseErr != nil {
+					agentLogPanel.Log("ERR: importo non valido: %s", amount)
+					app.Refresh()
+					return
+				}
 				resp, err := client.MarkDone(context.Background(), &pb.MarkDoneRequest{
 					CasinoId: id,
 					Result:   result,
@@ -304,8 +312,12 @@ func main() {
 
 	app.Bind("i", "Init", func() {
 		app.Prompt("Bankroll iniziale:", func(amount string) {
-			var bankroll float64
-			fmt.Sscanf(amount, "%f", &bankroll)
+			bankroll, parseErr := strconv.ParseFloat(strings.TrimSpace(amount), 64)
+			if parseErr != nil || bankroll <= 0 {
+				agentLogPanel.Log("ERR: bankroll non valido: %s", amount)
+				app.Refresh()
+				return
+			}
 			resp, err := client.Init(context.Background(), &pb.InitRequest{Bankroll: bankroll})
 			if err != nil {
 				agentLogPanel.Log("ERR: %v", err)

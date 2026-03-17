@@ -38,13 +38,13 @@ log = logging.getLogger("agent")
 
 # ── Config ───────────────────────────────────────────────────────────────────
 
-OLLAMA_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen3-vl:30b"
-DAEMON_ADDR = "localhost:50051"
-AGENT_ID = "agent-01"
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen3-vl:30b")
+DAEMON_ADDR = os.getenv("DAEMON_ADDR", "localhost:50051")
+AGENT_ID = os.getenv("AGENT_ID", "agent-01")
 
 # Safety constants
-BALANCE_CHECK_INTERVAL = 5      # check balance every N actions
+BALANCE_CHECK_INTERVAL = 1      # check balance every N actions (H2: was 5, too slow)
 MAX_CONSECUTIVE_ERRORS = 10     # abort after this many vision errors in a row
 MAX_STALE_ROUNDS = 30           # abort if no wagering progress for this many rounds
 SCREENSHOT_DELAY = 1.5          # seconds to wait after action before screenshot
@@ -105,18 +105,43 @@ Se c'e un errore/captcha/blocco: {{"elements": "...", "action": "error", "target
         raw = await self.analyze(
             screenshot_b64,
             "Leggi il saldo/balance corrente visibile in questo screenshot. "
-            "Rispondi SOLO con il numero (es: 42.50). Se non vedi un saldo scrivi: NONE",
+            "Rispondi con SOLO il numero del saldo, niente altro (es: 42.50). "
+            "Se non vedi un saldo scrivi esattamente: NONE",
         )
-        raw = raw.strip().replace("€", "").replace("$", "").replace(",", ".")
-        raw = raw.replace(" ", "").replace("NONE", "")
-        # Extract first number-like substring
+        cleaned = raw.strip()
+        if not cleaned or "NONE" in cleaned.upper():
+            return None
+        # Remove currency symbols and normalize decimal separator
+        cleaned = cleaned.replace("€", "").replace("$", "").replace("£", "")
+        cleaned = cleaned.replace(" ", "").replace("\n", "")
+        # H1 fix: use context-aware regex — match number near balance keywords,
+        # or if response is just a number, take it directly
         import re
-        match = re.search(r"[\d]+\.?\d*", raw)
-        if match:
+        # Try 1: look for number near balance/saldo keywords
+        ctx_match = re.search(
+            r"(?:balance|saldo|account|conto|credito|funds)[\s:=]*([0-9]+[.,]?[0-9]*)",
+            cleaned, re.IGNORECASE,
+        )
+        if ctx_match:
+            val = ctx_match.group(1).replace(",", ".")
             try:
-                return float(match.group())
+                result = float(val)
+                if 0 < result < 1_000_000:
+                    return result
             except ValueError:
                 pass
+        # Try 2: if response is mostly just a number (vision was asked for number only)
+        num_only = re.sub(r"[^0-9.,]", "", cleaned).replace(",", ".")
+        # Remove trailing dots
+        num_only = num_only.rstrip(".")
+        if num_only:
+            try:
+                result = float(num_only)
+                if 0 < result < 1_000_000:
+                    return result
+            except ValueError:
+                pass
+        log.warning("Could not parse balance from: %s", raw[:80])
         return None
 
     async def read_game_state(self, screenshot_b64: str, game_type: str) -> dict:
@@ -534,33 +559,53 @@ class FullAutoController:
             round_num += 1
             self.actions_since_balance_check += 1
 
-            # Periodic balance check
+            # H2 fix: check balance every action (BALANCE_CHECK_INTERVAL=1)
             if self.actions_since_balance_check >= BALANCE_CHECK_INTERVAL:
                 await self._check_balance_safe(watchdog)
                 if not watchdog.is_ok:
                     return
                 self.actions_since_balance_check = 0
 
-            screenshot = await take_screenshot(self.browser)
-            if not screenshot:
-                watchdog.record_error()
-                await asyncio.sleep(2)
-                continue
+            # H5 fix: browser crash recovery — detect dead browser and abort
+            try:
+                if not self.browser or not self.browser.current_page:
+                    watchdog.abort("Browser died — no current page")
+                    return
 
-            # Game-specific strategy via vision
-            if game_type == "blackjack":
-                acted = await self._play_blackjack_hand(screenshot, task, watchdog)
-            elif game_type == "poker":
-                acted = await self._play_poker_hand(screenshot, task, watchdog)
-            else:
-                acted = await self._play_slot_spin(screenshot, task, watchdog)
+                screenshot = await take_screenshot(self.browser)
+                if not screenshot:
+                    watchdog.record_error()
+                    await asyncio.sleep(2)
+                    continue
 
-            if acted:
-                self.wagered += task.bet_size
-                watchdog.record_success()
-                watchdog.check_progress(self.wagered)
-            else:
+                # Game-specific strategy via vision
+                if game_type == "blackjack":
+                    acted = await self._play_blackjack_hand(screenshot, task, watchdog)
+                elif game_type == "poker":
+                    acted = await self._play_poker_hand(screenshot, task, watchdog)
+                else:
+                    acted = await self._play_slot_spin(screenshot, task, watchdog)
+
+                if acted:
+                    self.wagered += task.bet_size
+                    watchdog.record_success()
+                    watchdog.check_progress(self.wagered)
+                else:
+                    watchdog.record_error()
+
+            except Exception as e:
+                log.error("Wagering round %d exception: %s", round_num, e)
                 watchdog.record_error()
+                # Check if browser is still alive after exception
+                try:
+                    if self.browser and self.browser.current_page:
+                        await asyncio.sleep(2)
+                    else:
+                        watchdog.abort(f"Browser crashed during wagering: {e}")
+                        return
+                except Exception:
+                    watchdog.abort(f"Browser unrecoverable after: {e}")
+                    return
 
             # Progress log
             if round_num % 10 == 0:
@@ -793,11 +838,12 @@ class FullAutoController:
 
 
 class OllamaLLMAdapter:
-    """Adapter that makes Qwen3-VL compatible with browser-use LLM interface."""
+    """Adapter that makes Qwen3-VL compatible with browser-use LLM interface.
+    H6 fix: reuses the QwenVision httpx client instead of creating a duplicate."""
 
     def __init__(self, vision: QwenVision):
         self.vision = vision
-        self.client = httpx.AsyncClient(timeout=120.0)
+        self.client = vision.client  # H6: share client, don't create a new one
         self.base_url = vision.base_url
         self.model = vision.model
 

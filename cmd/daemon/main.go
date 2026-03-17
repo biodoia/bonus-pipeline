@@ -452,10 +452,14 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterPipelineServiceServer(grpcServer, srv)
-	pb.RegisterAgentServiceServer(grpcServer, &agentServer{
-		pipeline: srv,
-		logCh:    make(chan *pb.AgentLogEntry, 64),
-	})
+	// H8: AgentService disabled until protoc-generated stubs with proper
+	// Marshal/Unmarshal are available. Hand-written stubs lack encoding,
+	// causing gRPC serialization failures at runtime.
+	// TODO: re-enable after running: make proto
+	// pb.RegisterAgentServiceServer(grpcServer, &agentServer{
+	// 	pipeline: srv,
+	// 	logCh:    make(chan *pb.AgentLogEntry, 64),
+	// })
 
 	// Graceful shutdown
 	sigCh := make(chan os.Signal, 1)

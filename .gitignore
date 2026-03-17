@@ -1,8 +1,8 @@
-# Binaries
+# Binaries (root level only, not cmd/ subdirs)
 bin/
-daemon
-tui
-pipeline
+/daemon
+/tui
+/pipeline
 *.exe
 
 # Runtime state (contains financial data)
