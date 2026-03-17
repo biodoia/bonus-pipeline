@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BonusQuest — CodePage 437 Retro Gamified UI</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   BONUSQUEST — CodePage 437 DOS Retrogaming Style
+   All inline, zero external dependencies
+   ═══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --neon-green: #39ff14;
+  --neon-cyan: #00ffff;
+  --neon-yellow: #ffff00;
+  --neon-magenta: #ff00ff;
+  --neon-hot: #ff1493;
+  --neon-orange: #ffaa00;
+  --neon-red: #ff0040;
+  --bg-void: #0a0a0a;
+  --bg-panel: #111111;
+  --bg-surface: #1a1a1a;
+  --bg-hover: #222222;
+  --text-primary: #ccffcc;
+  --text-secondary: #668866;
+  --text-dim: #445544;
+  --scanline-opacity: 0.04;
+  --glow-spread: 15px;
+}
+
+html, body {
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: unset;
+}
+
+/* CRT Scanlines overlay */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 0, var(--scanline-opacity)) 2px,
+    rgba(0, 255, 0, var(--scanline-opacity)) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* CRT screen curvature */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  box-shadow: inset 0 0 120px rgba(0,0,0,0.7);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Scrollbar retro */
+::-webkit-scrollbar { width: 12px; background: var(--bg-void); }
+::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--neon-green); }
+::-webkit-scrollbar-track { background: #111; }
+
+/* Neon glow text classes */
+.glow-green { color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green), 0 0 10px var(--neon-green); }
+.glow-cyan { color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan), 0 0 10px var(--neon-cyan); }
+.glow-yellow { color: var(--neon-yellow); text-shadow: 0 0 5px var(--neon-yellow), 0 0 10px var(--neon-yellow); }
+.glow-magenta { color: var(--neon-magenta); text-shadow: 0 0 5px var(--neon-magenta), 0 0 10px var(--neon-magenta); }
+.glow-hot { color: var(--neon-hot); text-shadow: 0 0 5px var(--neon-hot), 0 0 10px var(--neon-hot); }
+.glow-red { color: var(--neon-red); text-shadow: 0 0 5px var(--neon-red), 0 0 10px var(--neon-red); }
+
+/* ════════════ LAYOUT ════════════ */
+#app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 12px;
+}
+
+/* ASCII Art Header */
+#header-art {
+  text-align: center;
+  white-space: pre;
+  font-size: 11px;
+  line-height: 1.1;
+  color: var(--neon-green);
+  text-shadow: 0 0 8px var(--neon-green);
+  margin-bottom: 6px;
+  user-select: none;
+}
+
+/* Tab navigation */
+#tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 2px solid var(--neon-green);
+  margin-bottom: 8px;
+}
+
+.tab-btn {
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  border: 1px solid #333;
+  border-bottom: none;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background: var(--bg-hover);
+  color: var(--neon-cyan);
+}
+
+.tab-btn.active {
+  background: var(--bg-void);
+  color: var(--neon-green);
+  border-color: var(--neon-green);
+  text-shadow: 0 0 5px var(--neon-green);
+  position: relative;
+  top: 1px;
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ════════════ ASCII BOX ════════════ */
+.ascii-box {
+  border: 1px solid #444;
+  padding: 8px 10px;
+  margin: 6px 0;
+  background: var(--bg-panel);
+  position: relative;
+}
+
+.ascii-box::before {
+  content: attr(data-title);
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  background: var(--bg-panel);
+  padding: 0 4px;
+  color: var(--neon-cyan);
+  font-size: 11px;
+}
+
+.ascii-box-double {
+  border: 2px double var(--neon-green);
+  padding: 10px 12px;
+  margin: 8px 0;
+  background: var(--bg-panel);
+  box-shadow: 0 0 8px rgba(57, 255, 20, 0.15);
+}
+
+/* ════════════ QUEST MAP ════════════ */
+#quest-map-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 500px;
+}
+
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  padding: 10px;
+}
+
+.map-node {
+  text-align: center;
+  padding: 10px 6px;
+  border: 2px solid #333;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.map-node:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+.map-node.status-locked {
+  border-color: #333;
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.map-node.status-available {
+  border-color: var(--neon-cyan);
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+.map-node.status-active {
+  border-color: var(--neon-yellow);
+  box-shadow: 0 0 12px rgba(255, 255, 0, 0.3);
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+.map-node.status-done {
+  border-color: var(--neon-green);
+  background: rgba(57, 255, 20, 0.05);
+}
+
+.map-node.status-boss {
+  border-color: var(--neon-magenta);
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+  animation: boss-pulse 1s ease-in-out infinite;
+}
+
+.map-node .node-icon { font-size: 22px; margin-bottom: 4px; }
+.map-node .node-name { font-size: 10px; color: var(--text-primary); }
+.map-node .node-status { font-size: 9px; margin-top: 3px; }
+
+.map-connector {
+  text-align: center;
+  color: #444;
+  font-size: 10px;
+  padding: 2px 0;
+}
+
+/* Blinking cursor */
+.blink-cursor::after {
+  content: '█';
+  animation: blink 0.7s step-end infinite;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes pulse-border { 0%, 100% { border-color: var(--neon-cyan); } 50% { border-color: #006666; } }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 12px rgba(255,255,0,0.3); } 50% { box-shadow: 0 0 20px rgba(255,255,0,0.6); } }
+@keyframes boss-pulse { 0%, 100% { box-shadow: 0 0 15px rgba(255,0,255,0.4); } 50% { box-shadow: 0 0 25px rgba(255,0,255,0.7); } }
+
+/* ════════════ MISSIONI ════════════ */
+.casino-card {
+  border: 1px solid #444;
+  margin: 6px 0;
+  background: var(--bg-panel);
+  transition: all 0.2s;
+}
+
+.casino-card:hover {
+  border-color: var(--neon-green);
+}
+
+.casino-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.casino-header:hover { background: var(--bg-hover); }
+
+.casino-name {
+  color: var(--neon-cyan);
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.casino-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid;
+}
+
+.badge-todo { border-color: var(--text-dim); color: var(--text-dim); }
+.badge-active { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+.badge-done { border-color: var(--neon-green); color: var(--neon-green); }
+.badge-skipped { border-color: #666; color: #666; }
+
+.casino-body {
+  display: none;
+  padding: 8px 10px;
+  border-top: 1px solid #333;
+}
+
+.casino-body.expanded { display: block; }
+
+.casino-url { color: var(--neon-green); text-decoration: none; }
+.casino-url:hover { text-shadow: 0 0 5px var(--neon-green); }
+
+.bonus-code-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px dashed var(--neon-yellow);
+  padding: 3px 8px;
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.bonus-code-box code {
+  color: var(--neon-yellow);
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.btn-copy {
+  background: none;
+  border: 1px solid var(--neon-yellow);
+  color: var(--neon-yellow);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+
+.btn-copy:hover { background: rgba(255,255,0,0.1); }
+.btn-copy:active { transform: translateY(1px); }
+
+.step-list {
+  list-style: none;
+  margin: 6px 0;
+  padding-left: 4px;
+}
+
+.step-list li {
+  padding: 3px 0;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.step-list li::before {
+  content: '► ';
+  color: var(--neon-green);
+}
+
+/* EV Calculator inline */
+.ev-calc {
+  border: 1px solid #444;
+  padding: 6px 8px;
+  margin: 6px 0;
+  background: var(--bg-surface);
+  font-size: 12px;
+}
+
+.ev-calc label { color: var(--text-secondary); margin-right: 4px; }
+
+.ev-calc input {
+  background: var(--bg-void);
+  border: 1px solid #555;
+  color: var(--neon-green);
+  font-family: inherit;
+  font-size: 12px;
+  width: 70px;
+  padding: 2px 4px;
+  text-align: right;
+}
+
+.ev-calc input:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 4px rgba(0,255,255,0.3);
+}
+
+.ev-result {
+  margin-top: 4px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.ev-positive { color: var(--neon-green); }
+.ev-negative { color: var(--neon-red); }
+
+/* Action buttons */
+.action-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+.btn {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px 10px;
+  border: 1px solid;
+  cursor: pointer;
+  background: var(--bg-void);
+  transition: all 0.15s;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn-start { border-color: var(--neon-green); color: var(--neon-green); }
+.btn-start:hover { background: rgba(57,255,20,0.1); }
+.btn-done { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.btn-done:hover { background: rgba(0,255,255,0.1); }
+.btn-skip { border-color: #666; color: #666; }
+.btn-skip:hover { background: rgba(100,100,100,0.1); }
+.btn-reset { border-color: var(--neon-red); color: var(--neon-red); }
+.btn-reset:hover { background: rgba(255,0,64,0.1); }
+
+/* Progress bar */
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background: var(--bg-void);
+  border: 1px solid #444;
+  margin: 4px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--neon-green);
+  transition: width 0.5s;
+  box-shadow: 0 0 6px var(--neon-green);
+}
+
+.progress-text {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  text-align: center;
+  font-size: 9px;
+  line-height: 12px;
+  color: var(--bg-void);
+  font-weight: bold;
+  mix-blend-mode: difference;
+}
+
+/* Countdown */
+.countdown {
+  display: inline-block;
+  border: 1px solid var(--neon-red);
+  color: var(--neon-red);
+  padding: 2px 6px;
+  font-size: 11px;
+  animation: blink 1s step-end infinite;
+}
+
+/* ════════════ BANKROLL ════════════ */
+.bankroll-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bankroll-stat {
+  border: 1px solid #444;
+  padding: 8px;
+  text-align: center;
+  background: var(--bg-panel);
+}
+
+.bankroll-stat .stat-label { font-size: 10px; color: var(--text-secondary); }
+.bankroll-stat .stat-value { font-size: 18px; margin-top: 4px; }
+
+#ascii-chart {
+  white-space: pre;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--neon-green);
+  overflow-x: auto;
+  padding: 8px;
+  border: 1px solid #444;
+  background: var(--bg-panel);
+  min-height: 180px;
+}
+
+.bankroll-form {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bankroll-form input, .bankroll-form select {
+  background: var(--bg-void);
+  border: 1px solid #555;
+  color: var(--neon-green);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.bankroll-form input:focus, .bankroll-form select:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+.history-table th {
+  border-bottom: 1px solid var(--neon-green);
+  padding: 4px 6px;
+  text-align: left;
+  color: var(--neon-cyan);
+  font-size: 10px;
+}
+
+.history-table td {
+  border-bottom: 1px solid #222;
+  padding: 3px 6px;
+}
+
+.history-table tr:hover { background: var(--bg-hover); }
+
+/* ════════════ ADVISOR ════════════ */
+.bj-table-container { overflow-x: auto; margin: 8px 0; }
+
+.bj-table {
+  border-collapse: collapse;
+  font-size: 10px;
+  min-width: 600px;
+}
+
+.bj-table th, .bj-table td {
+  border: 1px solid #444;
+  padding: 3px 5px;
+  text-align: center;
+  cursor: pointer;
+  min-width: 30px;
+}
+
+.bj-table th {
+  background: var(--bg-surface);
+  color: var(--neon-cyan);
+}
+
+.bj-table td.bj-H { background: rgba(255,0,64,0.2); color: #ff6666; }
+.bj-table td.bj-S { background: rgba(57,255,20,0.15); color: var(--neon-green); }
+.bj-table td.bj-D { background: rgba(0,255,255,0.15); color: var(--neon-cyan); }
+.bj-table td.bj-P { background: rgba(255,255,0,0.15); color: var(--neon-yellow); }
+.bj-table td.bj-R { background: rgba(255,0,255,0.15); color: var(--neon-magenta); }
+.bj-table td.highlight { box-shadow: inset 0 0 8px var(--neon-yellow); border-color: var(--neon-yellow); }
+
+.advisor-section { margin: 10px 0; }
+.advisor-section h3 { color: var(--neon-cyan); font-size: 13px; margin-bottom: 6px; }
+
+.poker-calc {
+  border: 1px solid #444;
+  padding: 8px;
+  background: var(--bg-panel);
+  margin: 6px 0;
+}
+
+.poker-calc input {
+  background: var(--bg-void);
+  border: 1px solid #555;
+  color: var(--neon-green);
+  font-family: inherit;
+  font-size: 12px;
+  padding: 3px 6px;
+  width: 80px;
+}
+
+.poker-calc input:focus { outline: none; border-color: var(--neon-cyan); }
+
+/* ════════════ ACHIEVEMENTS ════════════ */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.badge-card {
+  border: 1px solid #333;
+  padding: 8px;
+  text-align: center;
+  background: var(--bg-panel);
+  transition: all 0.2s;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-card.unlocked {
+  border-color: var(--neon-magenta);
+  box-shadow: 0 0 8px rgba(255,0,255,0.2);
+}
+
+.badge-card.locked { opacity: 0.35; }
+
+.badge-card .badge-icon { font-size: 24px; margin-bottom: 4px; }
+.badge-card .badge-name { font-size: 10px; color: var(--neon-cyan); }
+.badge-card .badge-desc { font-size: 9px; color: var(--text-secondary); margin-top: 2px; }
+
+.xp-bar-container {
+  margin: 8px 0;
+  text-align: center;
+}
+
+.rank-display {
+  font-size: 18px;
+  color: var(--neon-magenta);
+  text-shadow: 0 0 8px var(--neon-magenta);
+  margin-bottom: 6px;
+}
+
+.xp-info { font-size: 12px; color: var(--text-secondary); margin: 4px 0; }
+
+/* ════════════ CONFIG ════════════ */
+.config-section { margin: 10px 0; }
+
+.mode-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.mode-btn {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 8px 14px;
+  border: 2px solid #555;
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+
+.mode-btn.active-mode {
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  text-shadow: 0 0 5px var(--neon-green);
+  background: rgba(57,255,20,0.05);
+}
+
+.config-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.config-actions .btn { padding: 6px 14px; font-size: 12px; }
+
+#import-area {
+  width: 100%;
+  min-height: 100px;
+  background: var(--bg-void);
+  border: 1px solid #555;
+  color: var(--neon-green);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px;
+  resize: vertical;
+}
+
+#import-area:focus { outline: none; border-color: var(--neon-cyan); }
+
+/* ════════════ ACHIEVEMENT POPUP ════════════ */
+#achievement-popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  border: 3px double var(--neon-magenta);
+  background: var(--bg-void);
+  padding: 16px 24px;
+  text-align: center;
+  animation: popup-appear 0.3s ease-out;
+  box-shadow: 0 0 30px rgba(255,0,255,0.4);
+  min-width: 280px;
+}
+
+#achievement-popup.visible { display: block; }
+
+@keyframes popup-appear {
+  from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes border-rainbow {
+  0% { border-color: var(--neon-magenta); }
+  25% { border-color: var(--neon-cyan); }
+  50% { border-color: var(--neon-green); }
+  75% { border-color: var(--neon-yellow); }
+  100% { border-color: var(--neon-magenta); }
+}
+
+#achievement-popup.visible {
+  animation: popup-appear 0.3s ease-out, border-rainbow 1s linear infinite;
+}
+
+/* ════════════ ASCII CONFETTI ════════════ */
+.confetti-piece {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9997;
+  font-size: 14px;
+  animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* ════════════ SHAKE ════════════ */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.shake { animation: shake 0.5s; }
+
+/* ════════════ STREAK COUNTER ════════════ */
+.streak-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--neon-orange);
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--neon-orange);
+}
+
+/* ════════════ STATUS BAR ════════════ */
+#status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid #333;
+  background: var(--bg-panel);
+  font-size: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+#status-bar span { margin: 0 4px; }
+
+/* ════════════ MAP DETAIL MODAL ════════════ */
+#map-detail-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9990;
+  background: rgba(0,0,0,0.85);
+  justify-content: center;
+  align-items: center;
+}
+
+#map-detail-modal.visible { display: flex; }
+
+#map-detail-content {
+  border: 2px double var(--neon-cyan);
+  background: var(--bg-void);
+  padding: 16px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  color: var(--neon-red);
+  cursor: pointer;
+  font-size: 16px;
+  background: none;
+  border: none;
+  font-family: inherit;
+}
+
+.modal-close:hover { text-shadow: 0 0 5px var(--neon-red); }
+
+/* ════════════ RESPONSIVE ════════════ */
+@media (max-width: 700px) {
+  .map-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .badge-grid { grid-template-columns: repeat(2, 1fr); }
+  #header-art { font-size: 7px; }
+  .tab-btn { font-size: 10px; padding: 4px 6px; }
+  .bj-table { font-size: 8px; }
+  .bj-table th, .bj-table td { padding: 2px 3px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════ HEADER ASCII ART ═══════════════ -->
+<pre id="header-art">
+╔══════════════════════════════════════════════════════════════════╗
+║  ██████╗  ██████╗ ███╗   ██╗██╗   ██╗███████╗                  ║
+║  ██╔══██╗██╔═══██╗████╗  ██║██║   ██║██╔════╝                  ║
+║  ██████╔╝██║   ██║██╔██╗ ██║██║   ██║███████╗                  ║
+║  ██╔══██╗██║   ██║██║╚██╗██║██║   ██║╚════██║                  ║
+║  ██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝███████║                  ║
+║  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝                  ║
+║   ██████╗ ██╗   ██╗███████╗███████╗████████╗                    ║
+║  ██╔═══██╗██║   ██║██╔════╝██╔════╝╚══██╔══╝                    ║
+║  ██║   ██║██║   ██║█████╗  ███████╗   ██║                       ║
+║  ██║▄▄ ██║██║   ██║██╔══╝  ╚════██║   ██║                       ║
+║  ╚██████╔╝╚██████╔╝███████╗███████║   ██║                       ║
+║   ╚══▀▀═╝  ╚═════╝ ╚══════╝╚══════╝   ╚═╝  v1.0 CodePage437   ║
+╚══════════════════════════════════════════════════════════════════╝
+</pre>
+
+<!-- ═══════════════ STATUS BAR ═══════════════ -->
+<div id="status-bar">
+  <span class="glow-green">XP: <span id="sb-xp">0</span></span>
+  <span class="glow-magenta">Rank: <span id="sb-rank">Rookie</span></span>
+  <span class="glow-yellow">💰 Bankroll: €<span id="sb-bankroll">0.00</span></span>
+  <span class="glow-cyan">📊 EV Tot: €<span id="sb-ev">0.00</span></span>
+  <span class="streak-display">🔥 Streak: <span id="sb-streak">0</span>d</span>
+  <span id="sb-clock" class="glow-green"></span>
+</div>
+
+<!-- ═══════════════ TAB BAR ═══════════════ -->
+<div id="tab-bar">
+  <button class="tab-btn active" data-tab="quest-map">🗺 QUEST MAP</button>
+  <button class="tab-btn" data-tab="missioni">📋 MISSIONI</button>
+  <button class="tab-btn" data-tab="bankroll">💰 BANKROLL</button>
+  <button class="tab-btn" data-tab="advisor">🃏 ADVISOR</button>
+  <button class="tab-btn" data-tab="achievements">🏆 ACHIEVEMENTS</button>
+  <button class="tab-btn" data-tab="config">⚙ CONFIG</button>
+</div>
+
+<!-- ═══════════════ TAB: QUEST MAP ═══════════════ -->
+<div id="quest-map" class="tab-content active">
+  <div class="ascii-box-double">
+    <div style="text-align:center;margin-bottom:8px;">
+      <span class="glow-cyan">╔═══════════════════════════════╗</span><br>
+      <span class="glow-cyan">║</span> <span class="glow-green blink-cursor">  WORLD MAP — BONUS QUEST  </span> <span class="glow-cyan">║</span><br>
+      <span class="glow-cyan">╚═══════════════════════════════╝</span>
+    </div>
+    <div style="font-size:10px;color:var(--text-secondary);text-align:center;margin-bottom:6px;">
+      Legenda: <span style="color:#666">■ LOCKED</span> · <span style="color:var(--neon-cyan)">■ AVAILABLE</span> · <span style="color:var(--neon-yellow)">■ ACTIVE</span> · <span style="color:var(--neon-green)">■ DONE</span> · <span style="color:var(--neon-magenta)">■ BOSS</span>
+    </div>
+    <div class="map-grid" id="map-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB: MISSIONI ═══════════════ -->
+<div id="missioni" class="tab-content">
+  <div class="ascii-box-double">
+    <div style="text-align:center;margin-bottom:8px;">
+      <span class="glow-cyan">╔═══════════════════════════════════╗</span><br>
+      <span class="glow-cyan">║</span> <span class="glow-green"> 📋 LISTA MISSIONI — CASINO BONUS </span> <span class="glow-cyan">║</span><br>
+      <span class="glow-cyan">╚═══════════════════════════════════╝</span>
+    </div>
+    <div id="casino-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB: BANKROLL ═══════════════ -->
+<div id="bankroll" class="tab-content">
+  <div class="ascii-box-double">
+    <div style="text-align:center;margin-bottom:8px;">
+      <span class="glow-cyan">╔═══════════════════════════════╗</span><br>
+      <span class="glow-cyan">║</span> <span class="glow-green"> 💰 BANKROLL TRACKER </span> <span class="glow-cyan">║</span><br>
+      <span class="glow-cyan">╚═══════════════════════════════╝</span>
+    </div>
+
+    <div class="bankroll-summary">
+      <div class="bankroll-stat">
+        <div class="stat-label">BANKROLL TOTALE</div>
+        <div class="stat-value glow-green">€<span id="bk-total">0.00</span></div>
+      </div>
+      <div class="bankroll-stat">
+        <div class="stat-label">PROFIT / LOSS</div>
+        <div class="stat-value" id="bk-pnl">€0.00</div>
+      </div>
+      <div class="bankroll-stat">
+        <div class="stat-label">EV ACCUMULATO</div>
+        <div class="stat-value glow-cyan">€<span id="bk-ev">0.00</span></div>
+      </div>
+      <div class="bankroll-stat">
+        <div class="stat-label">OPERAZIONI</div>
+        <div class="stat-value glow-yellow"><span id="bk-ops">0</span></div>
+      </div>
+    </div>
+
+    <div class="ascii-box" data-title="[ GRAFICO ASCII ]">
+      <pre id="ascii-chart">Nessuna operazione registrata. Aggiungi la prima!</pre>
+    </div>
+
+    <div class="ascii-box" data-title="[ NUOVA OPERAZIONE ]">
+      <div class="bankroll-form">
+        <select id="bk-type">
+          <option value="deposit">Deposito</option>
+          <option value="bonus">Bonus Claim</option>
+          <option value="win">Vincita</option>
+          <option value="loss">Perdita</option>
+          <option value="withdraw">Prelievo</option>
+        </select>
+        <input type="number" id="bk-amount" placeholder="€ Importo" step="0.01">
+        <input type="text" id="bk-note" placeholder="Nota..." style="width:160px;">
+        <button class="btn btn-start" onclick="BQ.addBankrollOp()">+ REGISTRA</button>
+      </div>
+    </div>
+
+    <div class="ascii-box" data-title="[ STORIA OPERAZIONI ]">
+      <table class="history-table">
+        <thead>
+          <tr><th>DATA</th><th>TIPO</th><th>IMPORTO</th><th>NOTA</th><th>SALDO</th></tr>
+        </thead>
+        <tbody id="bk-history"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB: ADVISOR ═══════════════ -->
+<div id="advisor" class="tab-content">
+  <div class="ascii-box-double">
+    <div style="text-align:center;margin-bottom:8px;">
+      <span class="glow-cyan">╔═══════════════════════════════╗</span><br>
+      <span class="glow-cyan">║</span> <span class="glow-green"> 🃏 STRATEGY ADVISOR </span> <span class="glow-cyan">║</span><br>
+      <span class="glow-cyan">╚═══════════════════════════════╝</span>
+    </div>
+
+    <!-- BJ Basic Strategy -->
+    <div class="advisor-section">
+      <h3>╠═ BLACKJACK BASIC STRATEGY ═╣</h3>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">
+        Clicca: <span class="bj-H" style="padding:1px 4px;">H</span>=Hit
+        <span class="bj-S" style="padding:1px 4px;">S</span>=Stand
+        <span class="bj-D" style="padding:1px 4px;">D</span>=Double
+        <span class="bj-P" style="padding:1px 4px;">P</span>=Split
+        <span class="bj-R" style="padding:1px 4px;">R</span>=Surrender
+      </div>
+      <div style="margin:6px 0;">
+        <label style="font-size:11px;color:var(--text-secondary);">Player:</label>
+        <select id="bj-player" style="background:var(--bg-void);border:1px solid #555;color:var(--neon-green);font-family:inherit;font-size:11px;padding:2px;">
+          <option value="">--</option>
+        </select>
+        <label style="font-size:11px;color:var(--text-secondary);margin-left:8px;">Dealer:</label>
+        <select id="bj-dealer" style="background:var(--bg-void);border:1px solid #555;color:var(--neon-green);font-family:inherit;font-size:11px;padding:2px;">
+          <option value="">--</option>
+        </select>
+        <span id="bj-result" style="margin-left:10px;font-size:13px;font-weight:bold;"></span>
+      </div>
+      <div class="bj-table-container">
+        <table class="bj-table" id="bj-hard-table"></table>
+      </div>
+      <div class="bj-table-container" style="margin-top:8px;">
+        <table class="bj-table" id="bj-soft-table"></table>
+      </div>
+      <div class="bj-table-container" style="margin-top:8px;">
+        <table class="bj-table" id="bj-split-table"></table>
+      </div>
+    </div>
+
+    <!-- Poker Hand Strength -->
+    <div class="advisor-section">
+      <h3>╠═ POKER HAND STRENGTH ═╣</h3>
+      <div class="ascii-box" data-title="[ RANKING ]">
+        <pre style="font-size:11px;color:var(--text-primary);">
+ 1. Royal Flush      ─ A K Q J 10 suited         ─ Odds: 649,739:1
+ 2. Straight Flush   ─ 5 carte consecutive suited ─ Odds: 72,192:1
+ 3. Four of a Kind   ─ 4 carte uguali             ─ Odds: 4,164:1
+ 4. Full House       ─ 3+2 carte uguali           ─ Odds: 693:1
+ 5. Flush            ─ 5 carte stesso seme         ─ Odds: 508:1
+ 6. Straight         ─ 5 carte consecutive         ─ Odds: 254:1
+ 7. Three of a Kind  ─ 3 carte uguali             ─ Odds: 46:1
+ 8. Two Pair         ─ 2 coppie                    ─ Odds: 20:1
+ 9. One Pair         ─ 1 coppia                    ─ Odds: 1.37:1
+10. High Card        ─ nulla                       ─ Odds: 0.99:1</pre>
+      </div>
+    </div>
+
+    <!-- Pot Odds Calculator -->
+    <div class="advisor-section">
+      <h3>╠═ POT ODDS CALCULATOR ═╣</h3>
+      <div class="poker-calc">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <div>
+            <label style="font-size:11px;color:var(--text-secondary);">Pot ($):</label>
+            <input type="number" id="pot-size" value="100" step="1">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-secondary);">Bet ($):</label>
+            <input type="number" id="bet-size" value="50" step="1">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-secondary);">Outs:</label>
+            <input type="number" id="outs-count" value="9" step="1" min="0" max="47">
+          </div>
+          <button class="btn btn-start" onclick="BQ.calcPotOdds()">CALCOLA</button>
+        </div>
+        <div id="pot-odds-result" style="margin-top:6px;font-size:12px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB: ACHIEVEMENTS ═══════════════ -->
+<div id="achievements" class="tab-content">
+  <div class="ascii-box-double">
+    <div style="text-align:center;margin-bottom:8px;">
+      <span class="glow-cyan">╔═══════════════════════════════╗</span><br>
+      <span class="glow-cyan">║</span> <span class="glow-green"> 🏆 ACHIEVEMENTS & RANKS </span> <span class="glow-cyan">║</span><br>
+      <span class="glow-cyan">╚═══════════════════════════════╝</span>
+    </div>
+
+    <div class="xp-bar-container">
+      <div class="rank-display" id="rank-display">★ ROOKIE ★</div>
+      <div class="xp-info">XP: <span id="ach-xp">0</span> / <span id="ach-xp-next">100</span></div>
+      <div class="progress-bar" style="max-width:400px;margin:4px auto;">
+        <div class="progress-fill" id="xp-fill" style="width:0%"></div>
+        <div class="progress-text" id="xp-pct">0%</div>
+      </div>
+    </div>
+
+    <div class="badge-grid" id="badge-grid"></div>
+
+    <div class="ascii-box" data-title="[ STATS ]" style="margin-top:10px;">
+      <div style="font-size:12px;">
+        <span class="glow-green">Casino Completati: <span id="ach-done">0</span>/15</span> ·
+        <span class="glow-cyan">Badge Sbloccati: <span id="ach-badges">0</span>/<span id="ach-badges-total">0</span></span> ·
+        <span class="glow-yellow">Streak Max: <span id="ach-max-streak">0</span>d</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB: CONFIG ═══════════════ -->
+<div id="config" class="tab-content">
+  <div class="ascii-box-double">
+    <div style="text-align:center;margin-bottom:8px;">
+      <span class="glow-cyan">╔═══════════════════════════════╗</span><br>
+      <span class="glow-cyan">║</span> <span class="glow-green"> ⚙ CONFIGURAZIONE </span> <span class="glow-cyan">║</span><br>
+      <span class="glow-cyan">╚═══════════════════════════════╝</span>
+    </div>
+
+    <div class="config-section">
+      <h3 style="color:var(--neon-cyan);font-size:13px;">╠═ MODALITA' OPERATIVA ═╣</h3>
+      <div class="mode-selector">
+        <button class="mode-btn active-mode" data-mode="manual" onclick="BQ.setMode('manual')">📖 MANUAL</button>
+        <button class="mode-btn" data-mode="guided" onclick="BQ.setMode('guided')">🗺 GUIDED</button>
+        <button class="mode-btn" data-mode="semi-auto" onclick="BQ.setMode('semi-auto')">⚡ SEMI-AUTO</button>
+        <button class="mode-btn" data-mode="full-auto" onclick="BQ.setMode('full-auto')">🤖 FULL-AUTO</button>
+      </div>
+      <div class="ascii-box" data-title="[ INFO MODALITA' ]" id="mode-info" style="font-size:11px;">
+        MANUAL: Controllo completo. Ogni azione richiede conferma manuale.
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3 style="color:var(--neon-cyan);font-size:13px;">╠═ AUDIO ═╣</h3>
+      <div style="margin:6px 0;">
+        <label style="font-size:11px;cursor:pointer;">
+          <input type="checkbox" id="audio-toggle" checked onchange="BQ.toggleAudio()"> Effetti sonori abilitati
+        </label>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <h3 style="color:var(--neon-cyan);font-size:13px;">╠═ EXPORT / IMPORT DATI ═╣</h3>
+      <div class="config-actions">
+        <button class="btn btn-start" onclick="BQ.exportData()">📤 EXPORT JSON</button>
+        <button class="btn btn-done" onclick="BQ.importData()">📥 IMPORT JSON</button>
+        <button class="btn btn-reset" onclick="BQ.resetAll()">🗑 RESET TUTTO</button>
+      </div>
+      <textarea id="import-area" placeholder="Incolla qui il JSON per importare..."></textarea>
+    </div>
+
+    <div class="config-section">
+      <h3 style="color:var(--neon-cyan);font-size:13px;">╠═ INFO SISTEMA ═╣</h3>
+      <div class="ascii-box" style="font-size:11px;">
+        <pre>
+╔════════════════════════════════════════════╗
+║ BonusQuest v1.0 — CodePage 437 Edition    ║
+║ Persistence: localStorage                 ║
+║ Audio: Web Audio API (square wave)        ║
+║ Formule EV:                               ║
+║   EV = Bonus - (Wager × Bonus × HouseEdge)║
+║   HouseEdge BJ    = 0.5%                  ║
+║   HouseEdge Blood Suckers = 2%            ║
+║   HouseEdge Slot Media    = 4%            ║
+╚════════════════════════════════════════════╝</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ACHIEVEMENT POPUP ═══════════════ -->
+<div id="achievement-popup">
+  <div style="font-size:18px;margin-bottom:6px;">🏆</div>
+  <div style="color:var(--neon-magenta);font-size:13px;font-weight:bold;" id="popup-title">ACHIEVEMENT UNLOCKED!</div>
+  <div style="color:var(--neon-cyan);font-size:12px;margin-top:4px;" id="popup-badge"></div>
+  <div style="color:var(--text-secondary);font-size:10px;margin-top:4px;" id="popup-desc"></div>
+  <div style="color:var(--neon-yellow);font-size:11px;margin-top:6px;" id="popup-xp"></div>
+</div>
+
+<!-- ═══════════════ MAP DETAIL MODAL ═══════════════ -->
+<div id="map-detail-modal">
+  <div id="map-detail-content">
+    <button class="modal-close" onclick="BQ.closeMapDetail()">✕</button>
+    <div id="map-detail-body"></div>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   BONUSQUEST ENGINE — All logic inline
+   ═══════════════════════════════════════════════════════════════ */
+const BQ = (() => {
+
+// ════════════ CASINO DATA ════════════
+const CASINOS = [
+  { id:'bcgame', name:'BC.Game', url:'https://bc.game', code:'btcrank', bonus:'$3 BCD', wager:0, type:'crypto', icon:'🎲',
+    steps:['Registrati con referral code btcrank','Ricevi $3 BCD gratis (0x wagering)','Gioca Lucky Spin daily per bonus extra','Preleva in crypto istantaneo'],
+    notes:'Lucky Spin daily gratuito. Crypto instant withdrawal.', he:0.04, defaultBonus:3, defaultWager:0, isBoss:false },
+  { id:'leovegas', name:'LeoVegas IT', url:'https://leovegas.it', code:null, bonus:'100 FS', wager:1, type:'SPID', icon:'🦁',
+    steps:['Registrati con SPID (obbligatorio per IT)','Verifica identità KYC','Ricevi 100 Free Spins (1x wagering)','Gioca Blood Suckers (RTP 98%) per wagering'],
+    notes:'SPID richiesto. Blood Suckers per wagering ottimale.', he:0.02, defaultBonus:50, defaultWager:1, isBoss:false },
+  { id:'bitstarz', name:'BitStarz', url:'https://bitstarz.com', code:'STARZVIP', bonus:'50 FS', wager:40, type:'crypto', icon:'⭐',
+    steps:['Registrati con code STARZVIP','Ricevi 50 Free Spins (40x wagering)','Usa Blackjack per wagering (HE 0.5%)','Completa wagering e preleva'],
+    notes:'BJ per wagering. 40x è alto, calcola EV prima.', he:0.005, defaultBonus:25, defaultWager:40, isBoss:false },
+  { id:'betflag', name:'Betflag IT', url:'https://betflag.it', code:'FLAGOALIT', bonus:'San Patrizio', wager:1, type:'PayPal', icon:'🍀',
+    steps:['Registrati con code FLAGOALIT','Attiva promo San Patrizio (SCADE 22/03/2026!)','Completa wagering 1x','Preleva via PayPal (30 secondi!)'],
+    notes:'⚠️ SCADE 22 MARZO 2026! PayPal withdrawal 30sec.', he:0.04, defaultBonus:20, defaultWager:1, isBoss:false, deadline:'2026-03-22' },
+  { id:'betpanda', name:'BetPanda', url:'https://betpandacasino.io', code:null, bonus:'10% cashback', wager:0, type:'crypto', icon:'🐼',
+    steps:['Registrati su BetPanda','Deposita in crypto','Ricevi 10% cashback automatico (0x wagering)','Gioca e ritira cashback'],
+    notes:'Cashback 0x. Crypto instant.', he:0.04, defaultBonus:10, defaultWager:0, isBoss:false },
+  { id:'fortunejack', name:'FortuneJack', url:'https://fortunejack.com', code:null, bonus:'50 FS', wager:40, type:'crypto', icon:'🃏',
+    steps:['Registrati su FortuneJack','Ricevi 50 Free Spins (40x wagering)','Gioca slot ad alto RTP per wagering','Completa e preleva crypto'],
+    notes:'Crypto fast withdrawal. 40x wagering.', he:0.04, defaultBonus:25, defaultWager:40, isBoss:false },
+  { id:'rollino', name:'Rollino', url:'https://rollino.com', code:null, bonus:'20 FS', wager:25, type:'crypto', icon:'🎰',
+    steps:['Registrati su Rollino','Ricevi 20 Free Spins (25x wagering)','Completa wagering su slot','Preleva'],
+    notes:'25x wagering moderato.', he:0.04, defaultBonus:10, defaultWager:25, isBoss:false },
+  { id:'jetton', name:'JetTon', url:'https://jetton.io', code:null, bonus:'Lucky Wheel', wager:3, type:'TON', icon:'🎡',
+    steps:['Registrati su JetTon','Gira Lucky Wheel per bonus','Wagering 3x sul bonus','Preleva in TON crypto'],
+    notes:'TON crypto. Lucky Wheel bonus 3x.', he:0.04, defaultBonus:5, defaultWager:3, isBoss:false },
+  { id:'winzio', name:'Winz.io', url:'https://winz.io', code:'WOW', bonus:'0x tutto', wager:0, type:'crypto', icon:'🏆',
+    steps:['Registrati con code WOW','Ricevi bonus 0x wagering!','Gioca qualsiasi gioco','Preleva crypto in 5 minuti'],
+    notes:'0x wagering su TUTTO. Code WOW. Crypto 5min.', he:0.04, defaultBonus:20, defaultWager:0, isBoss:true },
+  { id:'duelbits', name:'Duelbits', url:'https://duelbits.com', code:null, bonus:'50% rakeback', wager:0, type:'crypto', icon:'⚔️',
+    steps:['Registrati su Duelbits','Attiva 50% rakeback (0x wagering)','Gioca provably fair games (RTP ~99%)','Rakeback accumulato = profit'],
+    notes:'Provably fair 99%. Rakeback 0x.', he:0.01, defaultBonus:15, defaultWager:0, isBoss:false },
+  { id:'thunderpick', name:'Thunderpick', url:'https://thunderpick.com', code:null, bonus:'Rakeback VIP', wager:0, type:'crypto', icon:'⚡',
+    steps:['Registrati su Thunderpick','Attiva rakeback VIP (0x wagering)','Gioca e accumula rakeback','Preleva crypto'],
+    notes:'Rakeback VIP 0x. Crypto.', he:0.04, defaultBonus:10, defaultWager:0, isBoss:false },
+  { id:'betmode', name:'BetMode', url:'https://betmode.io', code:null, bonus:'7% rakeback + 50% cashback', wager:0, type:'crypto', icon:'🎮',
+    steps:['Registrati su BetMode','Attiva 7% rakeback + 50% cashback','Tutto 0x wagering','Gioca e accumula rewards'],
+    notes:'Combo rakeback+cashback 0x. Molto generoso.', he:0.04, defaultBonus:15, defaultWager:0, isBoss:false },
+  { id:'betsio', name:'Bets.io', url:'https://bets.io', code:null, bonus:'20% cashback', wager:3, type:'crypto', icon:'🎯',
+    steps:['Registrati su Bets.io','Attiva 20% cashback (3x wagering)','Gioca e ricevi cashback','Completa 3x wagering e preleva'],
+    notes:'20% cashback con 3x. Buon deal.', he:0.04, defaultBonus:20, defaultWager:3, isBoss:false },
+  { id:'stake', name:'Stake.com', url:'https://stake.com', code:null, bonus:'Rakeback VIP', wager:0, type:'crypto', icon:'💎',
+    steps:['Registrati su Stake.com','Sali di livello VIP','Attiva rakeback 0x wagering','Crypto instant withdrawal'],
+    notes:'King dei crypto casino. Rakeback VIP 0x. Instant.', he:0.04, defaultBonus:20, defaultWager:0, isBoss:true },
+  { id:'bcpoker', name:'BC Poker', url:'https://bcpoker.com', code:null, bonus:'$10 free', wager:0, type:'skill', icon:'♠️',
+    steps:['Registrati su BC Poker','Ricevi $10 free (0x wagering)','Gioca poker (skill game!)','Preleva winnings'],
+    notes:'Skill game! $10 free 0x. Poker only.', he:0, defaultBonus:10, defaultWager:0, isBoss:false }
+];
+
+// ════════════ ACHIEVEMENTS DEFINITIONS ════════════
+const BADGE_DEFS = [
+  { id:'first_blood', name:'First Blood', icon:'🩸', desc:'Primo casino iniziato', check: s => s.started > 0 },
+  { id:'first_done', name:'Quest Complete', icon:'✅', desc:'Primo casino completato', check: s => s.done > 0 },
+  { id:'lucky_spin', name:'Lucky Spin', icon:'🎰', desc:'Completa BC.Game', check: s => s.casinoDone.includes('bcgame') },
+  { id:'crypto_king', name:'Crypto King', icon:'👑', desc:'Completa 5 casino crypto', check: s => CASINOS.filter(c=>c.type==='crypto'&&s.casinoDone.includes(c.id)).length>=5 },
+  { id:'spid_warrior', name:'SPID Warrior', icon:'🛡️', desc:'Completa LeoVegas IT', check: s => s.casinoDone.includes('leovegas') },
+  { id:'no_kyc_ghost', name:'No KYC Ghost', icon:'👻', desc:'Completa 3 casino senza KYC', check: s => CASINOS.filter(c=>c.type==='crypto'&&s.casinoDone.includes(c.id)).length>=3 },
+  { id:'blackjack_pro', name:'Blackjack Pro', icon:'🃏', desc:'Completa BitStarz (BJ wagering)', check: s => s.casinoDone.includes('bitstarz') },
+  { id:'speed_runner', name:'Speed Runner', icon:'⏱️', desc:'Completa Betflag (PayPal 30sec)', check: s => s.casinoDone.includes('betflag') },
+  { id:'panda_friend', name:'Panda Friend', icon:'🐼', desc:'Completa BetPanda', check: s => s.casinoDone.includes('betpanda') },
+  { id:'zero_wager', name:'Zero Wager Master', icon:'0️⃣', desc:'Completa 5 casino 0x wagering', check: s => CASINOS.filter(c=>c.wager===0&&s.casinoDone.includes(c.id)).length>=5 },
+  { id:'half_way', name:'Half Way There', icon:'🏔️', desc:'Completa 8 casino', check: s => s.done>=8 },
+  { id:'poker_face', name:'Poker Face', icon:'♠️', desc:'Completa BC Poker', check: s => s.casinoDone.includes('bcpoker') },
+  { id:'whale', name:'Whale Alert', icon:'🐋', desc:'Bankroll > €500', check: s => s.bankroll>=500 },
+  { id:'profit_machine', name:'Profit Machine', icon:'💰', desc:'P&L positivo > €100', check: s => s.pnl>100 },
+  { id:'streak_3', name:'On Fire', icon:'🔥', desc:'Streak di 3+ giorni', check: s => s.streak>=3 },
+  { id:'streak_7', name:'Unstoppable', icon:'💪', desc:'Streak di 7+ giorni', check: s => s.streak>=7 },
+  { id:'boss_slayer', name:'Boss Slayer', icon:'💀', desc:'Completa un Boss casino', check: s => CASINOS.filter(c=>c.isBoss&&s.casinoDone.includes(c.id)).length>0 },
+  { id:'completionist', name:'Casino Master', icon:'👾', desc:'Completa TUTTI i casino', check: s => s.done>=15 },
+  { id:'ev_hunter', name:'EV Hunter', icon:'📊', desc:'EV accumulato > €50', check: s => s.totalEV>50 },
+  { id:'ton_moon', name:'TON to the Moon', icon:'🚀', desc:'Completa JetTon', check: s => s.casinoDone.includes('jetton') },
+];
+
+const RANKS = [
+  { name:'Rookie', minXP:0 },
+  { name:'Hunter', minXP:100 },
+  { name:'Shark', minXP:300 },
+  { name:'Whale', minXP:600 },
+  { name:'Casino Master', minXP:1000 },
+];
+
+const MODE_INFO = {
+  manual: 'MANUAL: Controllo completo. Ogni azione richiede conferma manuale.',
+  guided: 'GUIDED: Suggerimenti attivi. Il sistema consiglia la prossima azione.',
+  'semi-auto': 'SEMI-AUTO: Azioni comuni automatizzate. Conferma solo per operazioni critiche.',
+  'full-auto': 'FULL-AUTO: Pilota automatico. Il sistema esegue tutto autonomamente.'
+};
+
+// ════════════ STATE ════════════
+let state = {
+  casinoStatus: {},     // id -> 'todo'|'active'|'done'|'skipped'
+  casinoProgress: {},   // id -> 0-100
+  bankroll: 0,
+  bankrollHistory: [],  // [{date, type, amount, note, balance}]
+  xp: 0,
+  badges: [],           // unlocked badge ids
+  streak: 0,
+  maxStreak: 0,
+  lastActiveDate: null,
+  mode: 'manual',
+  audioEnabled: true,
+  totalEV: 0,
+};
+
+// ════════════ AUDIO ════════════
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playBeep(freq = 800, duration = 0.08, type = 'square') {
+  if (!state.audioEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = 0.08;
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.stop(ctx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playFanfare() {
+  if (!state.audioEnabled) return;
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((f, i) => setTimeout(() => playBeep(f, 0.15, 'square'), i * 120));
+}
+
+function playError() {
+  playBeep(150, 0.2, 'sawtooth');
+}
+
+// ════════════ PERSISTENCE ════════════
+const STORAGE_KEY = 'bonusquest_state';
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const loaded = JSON.parse(raw);
+      state = { ...state, ...loaded };
+    }
+  } catch(e) {}
+  // Init missing casino statuses
+  CASINOS.forEach(c => {
+    if (!state.casinoStatus[c.id]) state.casinoStatus[c.id] = 'todo';
+    if (state.casinoProgress[c.id] === undefined) state.casinoProgress[c.id] = 0;
+  });
+  updateStreak();
+}
+
+// ════════════ STREAK ════════════
+function updateStreak() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (state.lastActiveDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (state.lastActiveDate === yesterday) {
+    state.streak++;
+  } else if (state.lastActiveDate !== today) {
+    state.streak = 1;
+  }
+  state.lastActiveDate = today;
+  if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+  saveState();
+}
+
+function markActive() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (state.lastActiveDate !== today) {
+    state.lastActiveDate = today;
+    updateStreak();
+    saveState();
+  }
+}
+
+// ════════════ XP & RANK ════════════
+function addXP(amount, reason) {
+  state.xp += amount;
+  saveState();
+  updateStatusBar();
+  updateAchievementsUI();
+}
+
+function getRank() {
+  let rank = RANKS[0];
+  for (const r of RANKS) {
+    if (state.xp >= r.minXP) rank = r;
+  }
+  return rank;
+}
+
+function getNextRank() {
+  const current = getRank();
+  const idx = RANKS.indexOf(current);
+  return idx < RANKS.length - 1 ? RANKS[idx + 1] : null;
+}
+
+// ════════════ ACHIEVEMENTS ════════════
+function checkAchievements() {
+  const stats = {
+    started: CASINOS.filter(c => state.casinoStatus[c.id] === 'active').length,
+    done: CASINOS.filter(c => state.casinoStatus[c.id] === 'done').length,
+    casinoDone: CASINOS.filter(c => state.casinoStatus[c.id] === 'done').map(c => c.id),
+    bankroll: state.bankroll,
+    pnl: state.bankrollHistory.reduce((s, op) => {
+      if (op.type === 'win' || op.type === 'bonus') return s + op.amount;
+      if (op.type === 'loss') return s - op.amount;
+      return s;
+    }, 0),
+    streak: state.streak,
+    totalEV: state.totalEV,
+  };
+
+  let newBadges = [];
+  BADGE_DEFS.forEach(b => {
+    if (!state.badges.includes(b.id) && b.check(stats)) {
+      state.badges.push(b.id);
+      newBadges.push(b);
+    }
+  });
+
+  if (newBadges.length > 0) {
+    saveState();
+    newBadges.forEach((b, i) => setTimeout(() => showAchievementPopup(b), i * 2500));
+  }
+}
+
+function showAchievementPopup(badge) {
+  playFanfare();
+  spawnConfetti();
+  const popup = document.getElementById('achievement-popup');
+  document.getElementById('popup-badge').textContent = badge.icon + ' ' + badge.name;
+  document.getElementById('popup-desc').textContent = badge.desc;
+  document.getElementById('popup-xp').textContent = '+25 XP';
+  addXP(25, 'Achievement: ' + badge.name);
+  popup.classList.add('visible');
+  setTimeout(() => popup.classList.remove('visible'), 2400);
+}
+
+// ════════════ ASCII CONFETTI ════════════
+function spawnConfetti() {
+  const chars = ['╔','╗','╚','╝','░','▒','▓','█','■','♦','♣','♠','♥','★','◆'];
+  const colors = ['#39ff14','#00ffff','#ffff00','#ff00ff','#ff1493','#ffaa00'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.textContent = chars[Math.floor(Math.random() * chars.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.color = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    el.style.animationDelay = Math.random() * 0.5 + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+
+// ════════════ TABS ════════════
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      playBeep(440, 0.05);
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+// ════════════ QUEST MAP ════════════
+function renderMap() {
+  const grid = document.getElementById('map-grid');
+  grid.innerHTML = '';
+  CASINOS.forEach(c => {
+    const status = state.casinoStatus[c.id] || 'todo';
+    let statusClass = 'status-';
+    if (status === 'done') statusClass += 'done';
+    else if (status === 'active') statusClass += 'active';
+    else if (status === 'skipped') statusClass += 'locked';
+    else if (c.isBoss) statusClass += 'boss';
+    else statusClass += 'available';
+
+    const node = document.createElement('div');
+    node.className = 'map-node ' + statusClass;
+    const statusLabel = status === 'done' ? '✓ DONE' : status === 'active' ? '▶ ACTIVE' : status === 'skipped' ? '✕ SKIP' : c.isBoss ? '☠ BOSS' : '○ READY';
+    const statusColor = status === 'done' ? 'var(--neon-green)' : status === 'active' ? 'var(--neon-yellow)' : status === 'skipped' ? '#666' : c.isBoss ? 'var(--neon-magenta)' : 'var(--neon-cyan)';
+    node.innerHTML = `<div class="node-icon">${c.icon}</div><div class="node-name">${c.name}</div><div class="node-status" style="color:${statusColor}">${statusLabel}</div>`;
+    if (state.casinoProgress[c.id] > 0 && status === 'active') {
+      node.innerHTML += `<div style="font-size:9px;color:var(--neon-yellow);margin-top:2px;">${state.casinoProgress[c.id]}%</div>`;
+    }
+    node.addEventListener('click', () => {
+      playBeep(523, 0.06);
+      showMapDetail(c);
+    });
+    grid.appendChild(node);
+  });
+}
+
+function showMapDetail(casino) {
+  const modal = document.getElementById('map-detail-modal');
+  const body = document.getElementById('map-detail-body');
+  const status = state.casinoStatus[casino.id] || 'todo';
+  const progress = state.casinoProgress[casino.id] || 0;
+
+  let deadlineHtml = '';
+  if (casino.deadline) {
+    const diff = Math.ceil((new Date(casino.deadline) - new Date()) / 86400000);
+    deadlineHtml = `<div class="countdown" style="margin:6px 0;">⚠ SCADE: ${casino.deadline} (${diff > 0 ? diff + ' giorni' : 'SCADUTO!'})</div>`;
+  }
+
+  body.innerHTML = `
+    <div style="text-align:center;font-size:28px;margin-bottom:4px;">${casino.icon}</div>
+    <div style="text-align:center;color:var(--neon-cyan);font-size:15px;font-weight:bold;">${casino.name}</div>
+    <div style="text-align:center;margin:4px 0;">
+      <a href="${casino.url}" target="_blank" class="casino-url">${casino.url}</a>
+    </div>
+    ${casino.code ? `<div style="text-align:center;"><div class="bonus-code-box"><code>${casino.code}</code><button class="btn-copy" onclick="BQ.copyCode('${casino.code}')">COPIA</button></div></div>` : ''}
+    ${deadlineHtml}
+    <div style="margin:8px 0;font-size:12px;color:var(--neon-yellow);">Bonus: ${casino.bonus} | Wager: ${casino.wager}x | Tipo: ${casino.type}</div>
+    <div class="progress-bar" style="margin:6px 0;">
+      <div class="progress-fill" style="width:${progress}%"></div>
+      <div class="progress-text">${progress}%</div>
+    </div>
+    <div style="font-size:11px;color:var(--text-secondary);margin:6px 0;">${casino.notes}</div>
+    <ol style="font-size:11px;padding-left:16px;margin:6px 0;">
+      ${casino.steps.map(s => `<li style="color:var(--text-primary);padding:2px 0;">${s}</li>`).join('')}
+    </ol>
+    <div style="text-align:center;margin-top:8px;">
+      <span style="font-size:12px;padding:3px 10px;border:1px solid;${status==='done'?'border-color:var(--neon-green);color:var(--neon-green)':status==='active'?'border-color:var(--neon-yellow);color:var(--neon-yellow)':'border-color:#888;color:#888'}">${status.toUpperCase()}</span>
+    </div>
+  `;
+  modal.classList.add('visible');
+}
+
+function closeMapDetail() {
+  document.getElementById('map-detail-modal').classList.remove('visible');
+}
+
+// Close modal on backdrop click
+document.getElementById('map-detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeMapDetail();
+});
+
+// ════════════ MISSIONI (CASINO LIST) ════════════
+function renderCasinoList() {
+  const container = document.getElementById('casino-list');
+  container.innerHTML = '';
+  CASINOS.forEach((c, idx) => {
+    const status = state.casinoStatus[c.id] || 'todo';
+    const progress = state.casinoProgress[c.id] || 0;
+    const badgeClass = status === 'done' ? 'badge-done' : status === 'active' ? 'badge-active' : status === 'skipped' ? 'badge-skipped' : 'badge-todo';
+    const badgeText = status === 'done' ? '✓ DONE' : status === 'active' ? '▶ ACTIVE' : status === 'skipped' ? '✕ SKIP' : 'TODO';
+
+    let deadlineHtml = '';
+    if (c.deadline) {
+      const diff = Math.ceil((new Date(c.deadline) - new Date()) / 86400000);
+      deadlineHtml = `<div class="countdown">⚠ SCADE: ${c.deadline} (${diff > 0 ? diff + ' giorni' : 'SCADUTO!'})</div>`;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'casino-card';
+    card.id = 'casino-card-' + c.id;
+    card.innerHTML = `
+      <div class="casino-header" onclick="BQ.toggleCasino('${c.id}')">
+        <span>
+          <span style="color:#666;font-size:10px;">#${idx+1}</span>
+          ${c.icon} <span class="casino-name">${c.name}</span>
+          <span style="font-size:10px;color:var(--text-dim);margin-left:4px;">[${c.type}]</span>
+        </span>
+        <span class="casino-badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="casino-body" id="casino-body-${c.id}">
+        <div style="margin-bottom:6px;">
+          <a href="${c.url}" target="_blank" class="casino-url">🔗 ${c.url}</a>
+        </div>
+        ${c.code ? `<div class="bonus-code-box">Code: <code>${c.code}</code> <button class="btn-copy" onclick="BQ.copyCode('${c.code}')">📋 COPIA</button></div>` : ''}
+        <div style="font-size:12px;color:var(--neon-yellow);margin:4px 0;">Bonus: ${c.bonus} | Wager: ${c.wager}x</div>
+        ${deadlineHtml}
+        <div style="font-size:11px;color:var(--text-secondary);margin:4px 0;font-style:italic;">${c.notes}</div>
+        <div style="font-size:11px;margin:4px 0;color:var(--neon-cyan);">── Steps ──</div>
+        <ol class="step-list">
+          ${c.steps.map(s => `<li>${s}</li>`).join('')}
+        </ol>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-${c.id}" style="width:${progress}%"></div>
+          <div class="progress-text">${progress}% wagering</div>
+        </div>
+
+        <!-- EV Calculator -->
+        <div class="ev-calc">
+          <div style="color:var(--neon-cyan);font-size:11px;margin-bottom:4px;">╠═ EV CALCULATOR ═╣</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <div><label>Bonus €</label><input type="number" id="ev-bonus-${c.id}" value="${c.defaultBonus}" step="0.01" oninput="BQ.calcEV('${c.id}')"></div>
+            <div><label>Wager x</label><input type="number" id="ev-wager-${c.id}" value="${c.defaultWager}" step="1" oninput="BQ.calcEV('${c.id}')"></div>
+            <div><label>RTP %</label><input type="number" id="ev-rtp-${c.id}" value="${(1 - c.he) * 100}" step="0.1" oninput="BQ.calcEV('${c.id}')"></div>
+          </div>
+          <div class="ev-result" id="ev-result-${c.id}">EV = €--</div>
+          <div style="font-size:9px;color:var(--text-dim);margin-top:2px;">EV = Bonus - (Wager × Bonus × HouseEdge)</div>
+        </div>
+
+        <div class="action-btns">
+          ${status !== 'active' && status !== 'done' ? `<button class="btn btn-start" onclick="BQ.setCasinoStatus('${c.id}','active')">▶ INIZIA</button>` : ''}
+          ${status === 'active' ? `<button class="btn btn-done" onclick="BQ.setCasinoStatus('${c.id}','done')">✓ FATTO</button>` : ''}
+          ${status !== 'done' && status !== 'skipped' ? `<button class="btn btn-skip" onclick="BQ.setCasinoStatus('${c.id}','skipped')">✕ SALTA</button>` : ''}
+          ${status !== 'todo' ? `<button class="btn btn-reset" onclick="BQ.setCasinoStatus('${c.id}','todo')">↺ RESET</button>` : ''}
+          ${status === 'active' ? `<input type="range" min="0" max="100" value="${progress}" style="width:100px;accent-color:var(--neon-green);" oninput="BQ.setProgress('${c.id}', this.value)">` : ''}
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+    // Auto-calc EV
+    setTimeout(() => calcEV(c.id), 0);
+  });
+}
+
+function toggleCasino(id) {
+  playBeep(440, 0.04);
+  const body = document.getElementById('casino-body-' + id);
+  body.classList.toggle('expanded');
+}
+
+function setCasinoStatus(id, status) {
+  const prev = state.casinoStatus[id];
+  state.casinoStatus[id] = status;
+  playBeep(status === 'done' ? 784 : status === 'active' ? 523 : 330, 0.1);
+
+  if (status === 'active' && prev !== 'active') {
+    addXP(10, 'Started ' + id);
+    markActive();
+  }
+  if (status === 'done') {
+    state.casinoProgress[id] = 100;
+    addXP(50, 'Completed ' + id);
+    spawnConfetti();
+    playFanfare();
+    markActive();
+  }
+  if (status === 'skipped') {
+    const card = document.getElementById('casino-card-' + id);
+    if (card) { card.classList.add('shake'); setTimeout(() => card.classList.remove('shake'), 600); }
+    playError();
+  }
+
+  saveState();
+  renderCasinoList();
+  renderMap();
+  updateStatusBar();
+  checkAchievements();
+}
+
+function setProgress(id, val) {
+  state.casinoProgress[id] = parseInt(val);
+  const fill = document.getElementById('progress-' + id);
+  if (fill) fill.style.width = val + '%';
+  saveState();
+}
+
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => {
+    playBeep(1047, 0.1);
+    // Flash feedback
+    const btns = document.querySelectorAll('.btn-copy');
+    btns.forEach(b => {
+      if (b.closest('.bonus-code-box')?.querySelector('code')?.textContent === code) {
+        b.textContent = '✓ COPIATO!';
+        setTimeout(() => b.textContent = '📋 COPIA', 1200);
+      }
+    });
+  }).catch(() => playError());
+}
+
+function calcEV(id) {
+  const bonusEl = document.getElementById('ev-bonus-' + id);
+  const wagerEl = document.getElementById('ev-wager-' + id);
+  const rtpEl = document.getElementById('ev-rtp-' + id);
+  const resultEl = document.getElementById('ev-result-' + id);
+  if (!bonusEl || !wagerEl || !rtpEl || !resultEl) return;
+
+  const bonus = parseFloat(bonusEl.value) || 0;
+  const wager = parseFloat(wagerEl.value) || 0;
+  const rtp = parseFloat(rtpEl.value) || 96;
+  const he = (100 - rtp) / 100;
+  const ev = bonus - (wager * bonus * he);
+
+  resultEl.textContent = `EV = €${ev.toFixed(2)}`;
+  resultEl.className = 'ev-result ' + (ev >= 0 ? 'ev-positive' : 'ev-negative');
+}
+
+// ════════════ BANKROLL ════════════
+function addBankrollOp() {
+  const type = document.getElementById('bk-type').value;
+  const amount = parseFloat(document.getElementById('bk-amount').value);
+  const note = document.getElementById('bk-note').value.trim();
+
+  if (isNaN(amount) || amount <= 0) { playError(); return; }
+
+  if (type === 'deposit' || type === 'bonus' || type === 'win') {
+    state.bankroll += amount;
+  } else if (type === 'loss') {
+    state.bankroll -= amount;
+  } else if (type === 'withdraw') {
+    state.bankroll -= amount;
+    addXP(100, 'Withdrawal');
+  }
+
+  if (type === 'bonus') {
+    state.totalEV += amount;
+    addXP(10, 'Bonus claim');
+  }
+
+  state.bankrollHistory.push({
+    date: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    type, amount, note,
+    balance: state.bankroll
+  });
+
+  playBeep(type === 'loss' ? 200 : 660, 0.1);
+  document.getElementById('bk-amount').value = '';
+  document.getElementById('bk-note').value = '';
+  saveState();
+  renderBankroll();
+  updateStatusBar();
+  checkAchievements();
+  markActive();
+}
+
+function renderBankroll() {
+  // Summary
+  document.getElementById('bk-total').textContent = state.bankroll.toFixed(2);
+  const pnl = state.bankrollHistory.reduce((s, op) => {
+    if (op.type === 'win' || op.type === 'bonus') return s + op.amount;
+    if (op.type === 'loss') return s - op.amount;
+    return s;
+  }, 0);
+  const pnlEl = document.getElementById('bk-pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+' : '') + '€' + pnl.toFixed(2);
+  pnlEl.className = 'stat-value ' + (pnl >= 0 ? 'glow-green' : 'glow-red');
+  document.getElementById('bk-ev').textContent = state.totalEV.toFixed(2);
+  document.getElementById('bk-ops').textContent = state.bankrollHistory.length;
+
+  // History table
+  const tbody = document.getElementById('bk-history');
+  tbody.innerHTML = '';
+  const history = [...state.bankrollHistory].reverse().slice(0, 50);
+  history.forEach(op => {
+    const typeColors = { deposit: 'var(--neon-cyan)', bonus: 'var(--neon-yellow)', win: 'var(--neon-green)', loss: 'var(--neon-red)', withdraw: 'var(--neon-magenta)' };
+    const sign = (op.type === 'loss' || op.type === 'withdraw') ? '-' : '+';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--text-secondary);">${op.date}</td>
+      <td style="color:${typeColors[op.type] || '#fff'}">${op.type.toUpperCase()}</td>
+      <td style="color:${sign==='+' ? 'var(--neon-green)' : 'var(--neon-red)'}">${sign}€${op.amount.toFixed(2)}</td>
+      <td style="color:var(--text-secondary);">${op.note || '-'}</td>
+      <td style="color:var(--neon-cyan);">€${op.balance.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // ASCII Chart
+  renderAsciiChart();
+}
+
+function renderAsciiChart() {
+  const chart = document.getElementById('ascii-chart');
+  const history = state.bankrollHistory;
+  if (history.length === 0) {
+    chart.textContent = 'Nessuna operazione registrata. Aggiungi la prima!';
+    return;
+  }
+
+  const balances = history.map(h => h.balance);
+  const maxVal = Math.max(...balances, 1);
+  const minVal = Math.min(...balances, 0);
+  const range = maxVal - minVal || 1;
+  const chartHeight = 12;
+  const chartWidth = Math.min(balances.length, 60);
+  const step = Math.max(1, Math.floor(balances.length / chartWidth));
+
+  const sampled = [];
+  for (let i = 0; i < balances.length; i += step) {
+    sampled.push(balances[i]);
+  }
+
+  const lines = [];
+  lines.push('╔' + '═'.repeat(sampled.length + 2) + '╗  BANKROLL EVOLUTION');
+
+  for (let row = chartHeight; row >= 0; row--) {
+    const threshold = minVal + (range * row / chartHeight);
+    let line = '║ ';
+    for (let col = 0; col < sampled.length; col++) {
+      if (sampled[col] >= threshold) {
+        line += sampled[col] >= 0 ? '█' : '▒';
+      } else {
+        line += ' ';
+      }
+    }
+    const label = row === chartHeight ? `€${maxVal.toFixed(0)}` : row === 0 ? `€${minVal.toFixed(0)}` : '';
+    line += ' ║ ' + label;
+    lines.push(line);
+  }
+
+  lines.push('╚' + '═'.repeat(sampled.length + 2) + '╝');
+  chart.textContent = lines.join('\n');
+}
+
+// ════════════ ADVISOR — BJ STRATEGY ════════════
+// Basic Strategy tables (simplified, 4-8 deck, dealer stands on S17)
+const BJ_HARD = {
+  // [player total] -> { [dealer upcard]: action }
+  // dealer: 2,3,4,5,6,7,8,9,10,A
+  '5':  'HHHHHHHHHH', '6':  'HHHHHHHHHH', '7':  'HHHHHHHHHH', '8':  'HHHHHHHHHH',
+  '9':  'HDDDDHHHHH', '10': 'DDDDDDDDHH', '11': 'DDDDDDDDDH',
+  '12': 'HHSSSHHHHHH', '13': 'SSSSSHHHHH', '14': 'SSSSSHHHHH',
+  '15': 'SSSSSHHHHH', '16': 'SSSSSHHHHH', '17': 'SSSSSSSSSS',
+  '18': 'SSSSSSSSSS', '19': 'SSSSSSSSSS', '20': 'SSSSSSSSSS', '21': 'SSSSSSSSSS',
+};
+
+const BJ_SOFT = {
+  'A,2': 'HHDDDHHHHH', 'A,3': 'HHDDDHHHHH', 'A,4': 'HHDDDHHHHH',
+  'A,5': 'HHDDDHHHHH', 'A,6': 'HDDDDHHHHH', 'A,7': 'SDDDDSSHHH',
+  'A,8': 'SSSSSSSSSS', 'A,9': 'SSSSSSSSSS',
+};
+
+const BJ_SPLIT = {
+  '2,2': 'PPPPPPHHHHH', '3,3': 'PPPPPPHHHHH', '4,4': 'HHHPPHHHHH',
+  '5,5': 'DDDDDDDDHH', '6,6': 'PPPPPPHHHHH', '7,7': 'PPPPPPPHHH',
+  '8,8': 'PPPPPPPPPP', '9,9': 'PPPPPPSPPS', 'T,T': 'SSSSSSSSSS',
+  'A,A': 'PPPPPPPPPP',
+};
+
+const DEALER_CARDS = ['2','3','4','5','6','7','8','9','10','A'];
+const ACTION_NAMES = { H: 'HIT', S: 'STAND', D: 'DOUBLE', P: 'SPLIT', R: 'SURRENDER' };
+
+function buildBJTable(tableId, data, rowLabels, title) {
+  const table = document.getElementById(tableId);
+  let html = `<caption style="text-align:left;color:var(--neon-cyan);font-size:11px;padding:2px;">${title}</caption>`;
+  html += '<tr><th>Player\\Dealer</th>';
+  DEALER_CARDS.forEach(d => html += `<th>${d}</th>`);
+  html += '</tr>';
+
+  rowLabels.forEach(label => {
+    const actions = data[label] || '';
+    html += `<tr><th>${label}</th>`;
+    for (let i = 0; i < DEALER_CARDS.length; i++) {
+      const act = actions[i] || '?';
+      html += `<td class="bj-${act}" data-player="${label}" data-dealer="${DEALER_CARDS[i]}" data-action="${act}">${act}</td>`;
+    }
+    html += '</tr>';
+  });
+  table.innerHTML = html;
+
+  // Click handler
+  table.querySelectorAll('td').forEach(td => {
+    td.addEventListener('click', () => {
+      playBeep(523, 0.06);
+      // Highlight
+      table.querySelectorAll('td').forEach(t => t.classList.remove('highlight'));
+      td.classList.add('highlight');
+      const action = td.dataset.action;
+      document.getElementById('bj-result').textContent = `→ ${ACTION_NAMES[action] || action}`;
+      document.getElementById('bj-result').style.color =
+        action === 'H' ? '#ff6666' : action === 'S' ? 'var(--neon-green)' :
+        action === 'D' ? 'var(--neon-cyan)' : action === 'P' ? 'var(--neon-yellow)' : 'var(--neon-magenta)';
+    });
+  });
+}
+
+function initBJTables() {
+  const hardRows = ['5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21'];
+  buildBJTable('bj-hard-table', BJ_HARD, hardRows, '╠═ HARD TOTALS ═╣');
+
+  const softRows = ['A,2','A,3','A,4','A,5','A,6','A,7','A,8','A,9'];
+  buildBJTable('bj-soft-table', BJ_SOFT, softRows, '╠═ SOFT TOTALS ═╣');
+
+  const splitRows = ['2,2','3,3','4,4','5,5','6,6','7,7','8,8','9,9','T,T','A,A'];
+  buildBJTable('bj-split-table', BJ_SPLIT, splitRows, '╠═ PAIRS (SPLIT) ═╣');
+
+  // Populate selects
+  const playerSel = document.getElementById('bj-player');
+  const dealerSel = document.getElementById('bj-dealer');
+  hardRows.forEach(r => { const o = document.createElement('option'); o.value = 'H' + r; o.textContent = 'Hard ' + r; playerSel.appendChild(o); });
+  softRows.forEach(r => { const o = document.createElement('option'); o.value = 'S' + r; o.textContent = 'Soft ' + r; playerSel.appendChild(o); });
+  splitRows.forEach(r => { const o = document.createElement('option'); o.value = 'P' + r; o.textContent = 'Pair ' + r; playerSel.appendChild(o); });
+  DEALER_CARDS.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; dealerSel.appendChild(o); });
+
+  const lookupBJ = () => {
+    const p = playerSel.value;
+    const d = dealerSel.value;
+    if (!p || !d) return;
+    const dIdx = DEALER_CARDS.indexOf(d);
+    let action = '?';
+    if (p.startsWith('H')) { action = (BJ_HARD[p.slice(1)] || '')[dIdx] || '?'; }
+    else if (p.startsWith('S')) { action = (BJ_SOFT[p.slice(1)] || '')[dIdx] || '?'; }
+    else if (p.startsWith('P')) { action = (BJ_SPLIT[p.slice(1)] || '')[dIdx] || '?'; }
+    const res = document.getElementById('bj-result');
+    res.textContent = `→ ${ACTION_NAMES[action] || action}`;
+    res.style.color = action === 'H' ? '#ff6666' : action === 'S' ? 'var(--neon-green)' :
+      action === 'D' ? 'var(--neon-cyan)' : action === 'P' ? 'var(--neon-yellow)' : 'var(--neon-magenta)';
+    playBeep(523, 0.06);
+  };
+
+  playerSel.addEventListener('change', lookupBJ);
+  dealerSel.addEventListener('change', lookupBJ);
+}
+
+function calcPotOdds() {
+  const pot = parseFloat(document.getElementById('pot-size').value) || 0;
+  const bet = parseFloat(document.getElementById('bet-size').value) || 0;
+  const outs = parseInt(document.getElementById('outs-count').value) || 0;
+
+  const potOdds = bet / (pot + bet) * 100;
+  const equity = (outs / 47) * 100;     // turn
+  const equity2 = (1 - Math.pow((47 - outs) / 47 * (46 - outs) / 46, 1)) * 100; // turn+river approx
+
+  const result = document.getElementById('pot-odds-result');
+  const profitable = equity >= potOdds;
+  result.innerHTML = `
+    <div>Pot Odds: <span class="glow-yellow">${potOdds.toFixed(1)}%</span> (devi vincere almeno questo)</div>
+    <div>Equity (turn): <span class="${equity >= potOdds ? 'glow-green' : 'glow-red'}">${equity.toFixed(1)}%</span></div>
+    <div>Equity (turn+river ≈): <span class="glow-cyan">${(outs * 4).toFixed(0)}%</span> (regola del 4)</div>
+    <div style="margin-top:4px;font-size:13px;font-weight:bold;color:${profitable ? 'var(--neon-green)' : 'var(--neon-red)'}">
+      ${profitable ? '✓ CALL PROFITTEVOLE' : '✕ FOLD (o bluff)'}
+    </div>
+  `;
+  playBeep(profitable ? 660 : 220, 0.1);
+}
+
+// ════════════ ACHIEVEMENTS UI ════════════
+function renderBadges() {
+  const grid = document.getElementById('badge-grid');
+  grid.innerHTML = '';
+  BADGE_DEFS.forEach(b => {
+    const unlocked = state.badges.includes(b.id);
+    const card = document.createElement('div');
+    card.className = 'badge-card ' + (unlocked ? 'unlocked' : 'locked');
+    card.innerHTML = `
+      <div class="badge-icon">${unlocked ? b.icon : '🔒'}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${unlocked ? b.desc : '???'}</div>
+    `;
+    grid.appendChild(card);
+  });
+  document.getElementById('ach-badges-total').textContent = BADGE_DEFS.length;
+}
+
+function updateAchievementsUI() {
+  const rank = getRank();
+  const nextRank = getNextRank();
+
+  document.getElementById('rank-display').textContent = '★ ' + rank.name.toUpperCase() + ' ★';
+  document.getElementById('ach-xp').textContent = state.xp;
+  document.getElementById('ach-xp-next').textContent = nextRank ? nextRank.minXP : 'MAX';
+
+  const pct = nextRank ? Math.min(100, ((state.xp - rank.minXP) / (nextRank.minXP - rank.minXP)) * 100) : 100;
+  document.getElementById('xp-fill').style.width = pct + '%';
+  document.getElementById('xp-pct').textContent = Math.round(pct) + '%';
+
+  document.getElementById('ach-done').textContent = CASINOS.filter(c => state.casinoStatus[c.id] === 'done').length;
+  document.getElementById('ach-badges').textContent = state.badges.length;
+  document.getElementById('ach-max-streak').textContent = state.maxStreak;
+
+  renderBadges();
+}
+
+// ════════════ CONFIG ════════════
+function setMode(mode) {
+  state.mode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active-mode', b.dataset.mode === mode);
+  });
+  document.getElementById('mode-info').textContent = MODE_INFO[mode] || '';
+  playBeep(440, 0.06);
+  saveState();
+}
+
+function toggleAudio() {
+  state.audioEnabled = document.getElementById('audio-toggle').checked;
+  saveState();
+}
+
+function exportData() {
+  const json = JSON.stringify(state, null, 2);
+  document.getElementById('import-area').value = json;
+  navigator.clipboard.writeText(json).then(() => {
+    playBeep(660, 0.1);
+    alert('Dati esportati e copiati negli appunti!');
+  }).catch(() => {
+    playBeep(660, 0.1);
+    alert('Dati esportati nel campo di testo sottostante.');
+  });
+}
+
+function importData() {
+  const raw = document.getElementById('import-area').value.trim();
+  if (!raw) { playError(); alert('Incolla il JSON nel campo di testo!'); return; }
+  try {
+    const imported = JSON.parse(raw);
+    state = { ...state, ...imported };
+    saveState();
+    playFanfare();
+    alert('Dati importati con successo!');
+    refreshAll();
+  } catch(e) {
+    playError();
+    alert('JSON non valido: ' + e.message);
+  }
+}
+
+function resetAll() {
+  if (!confirm('⚠ Vuoi davvero RESETTARE TUTTO? Questa azione è irreversibile!')) return;
+  if (!confirm('Sei SICURO? Tutti i progressi andranno persi!')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = {
+    casinoStatus: {}, casinoProgress: {}, bankroll: 0, bankrollHistory: [],
+    xp: 0, badges: [], streak: 0, maxStreak: 0, lastActiveDate: null,
+    mode: 'manual', audioEnabled: true, totalEV: 0,
+  };
+  CASINOS.forEach(c => { state.casinoStatus[c.id] = 'todo'; state.casinoProgress[c.id] = 0; });
+  saveState();
+  playError();
+  refreshAll();
+}
+
+// ════════════ STATUS BAR ════════════
+function updateStatusBar() {
+  const rank = getRank();
+  document.getElementById('sb-xp').textContent = state.xp;
+  document.getElementById('sb-rank').textContent = rank.name;
+  document.getElementById('sb-bankroll').textContent = state.bankroll.toFixed(2);
+  document.getElementById('sb-ev').textContent = state.totalEV.toFixed(2);
+  document.getElementById('sb-streak').textContent = state.streak;
+}
+
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('sb-clock').textContent = h + ':' + m + ':' + s;
+}
+
+// ════════════ INIT ════════════
+function refreshAll() {
+  renderMap();
+  renderCasinoList();
+  renderBankroll();
+  initBJTables();
+  updateAchievementsUI();
+  updateStatusBar();
+  // Restore mode
+  setMode(state.mode);
+  document.getElementById('audio-toggle').checked = state.audioEnabled;
+}
+
+function init() {
+  loadState();
+  initTabs();
+  refreshAll();
+  updateClock();
+  setInterval(updateClock, 1000);
+  // Check Betflag countdown every minute
+  setInterval(() => renderCasinoList(), 60000);
+  checkAchievements();
+}
+
+// ════════════ PUBLIC API ════════════
+return {
+  init, toggleCasino, setCasinoStatus, setProgress, copyCode, calcEV,
+  addBankrollOp, calcPotOdds, setMode, toggleAudio,
+  exportData, importData, resetAll, closeMapDetail,
+};
+
+})();
+
+// Boot
+document.addEventListener('DOMContentLoaded', BQ.init);
+</script>
+</body>
+</html>
