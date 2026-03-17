@@ -1,6 +1,7 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "updated": "2026-03-17",
+  "verified": "2026-03-17 browser-check via BrowserOS MCP",
   "casinos": [
     {
       "id": "bc-game",
@@ -29,7 +30,9 @@
       "kyc_required": false,
       "spid_required": false,
       "jurisdiction": "curacao",
-      "notes": "0x wager su tutto. Originals al 99% RTP. Prelievo crypto istantaneo."
+      "bonus_code": "btcrank",
+      "browser_verified": true,
+      "notes": "0x wager su tutto. Originals al 99% RTP. Prelievo crypto istantaneo. Codice: btcrank"
     },
     {
       "id": "bc-poker",
@@ -68,7 +71,7 @@
       "url": "https://bitstarz.com",
       "bonus": {
         "type": "no-deposit-freespins",
-        "amount": 20,
+        "amount": 50,
         "currency": "FS",
         "spin_value": 0.10,
         "wager": 40,
@@ -92,7 +95,9 @@
       "kyc_required": false,
       "spid_required": false,
       "jurisdiction": "curacao",
-      "notes": "20 FS no-dep. Usa Blood Suckers o 1429 Uncharted Seas. BTC prelievo <10min."
+      "bonus_code": "STARZVIP",
+      "browser_verified": true,
+      "notes": "50 FS no-dep (aggiornato 2026). Codice STARZVIP. Usa Blood Suckers o 1429 Uncharted Seas. BTC prelievo <10min."
     },
     {
       "id": "winzio",
@@ -122,7 +127,8 @@
       "kyc_required": false,
       "spid_required": false,
       "jurisdiction": "curacao",
-      "notes": "0x wager su tutti i bonus. Uno dei migliori crypto casino."
+      "browser_verified": true,
+      "notes": "0x wager su tutti i bonus. 6+ bonus offers visibili. Award-winning crypto casino."
     },
     {
       "id": "leovegas-it",
@@ -152,7 +158,8 @@
       "kyc_required": true,
       "spid_required": true,
       "jurisdiction": "adm",
-      "notes": "RE ASSOLUTO in Italia. 100 FS a 1x wagering. Richiede SPID."
+      "browser_verified": true,
+      "notes": "RE ASSOLUTO in Italia. 100 FS a 1x wagering. Richiede SPID. Bonus €1500 + 250 FS welcome."
     },
     {
       "id": "betsson-it",
@@ -241,7 +248,8 @@
       "kyc_required": false,
       "spid_required": false,
       "jurisdiction": "curacao",
-      "notes": "10% cashback settimanale 0x. Zero KYC assoluto. Prelievo istantaneo."
+      "browser_verified": true,
+      "notes": "10% cashback settimanale 0x + 5% live casino. Zero KYC. Prelievo istantaneo."
     },
     {
       "id": "jetton",
@@ -361,7 +369,8 @@
       "kyc_required": true,
       "spid_required": false,
       "jurisdiction": "adm",
-      "notes": "€3000 in tranche da €200. Wager 3x per tranche. PayPal 30 SECONDI — prelievo più rapido d'Italia."
+      "browser_verified": true,
+      "notes": "€3000 in tranche da €200. Wager 3x per tranche. PayPal 30 SECONDI. Promo San Patrizio 50k€."
     },
     {
       "id": "rollino",
@@ -452,6 +461,130 @@
       "spid_required": false,
       "jurisdiction": "curacao",
       "notes": "Media priorità crypto."
+    },
+    {
+      "id": "duelbits",
+      "name": "Duelbits",
+      "priority": 16,
+      "tier": "crypto-nokyo",
+      "url": "https://duelbits.com",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 0,
+        "currency": "USD",
+        "wager": 0,
+        "notes": "Boosted Welcome Offer, rakeback",
+        "max_cashout": 500,
+        "expiry_days": 30
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC", "SOL"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 5,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Crash / Slots",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "browser_verified": true,
+      "notes": "Redirects .com→.io. Welcome Offer, VIP Club, 14 Challenges attive, Clover Cash Tournament."
+    },
+    {
+      "id": "thunderpick",
+      "name": "Thunderpick",
+      "priority": 17,
+      "tier": "crypto-nokyo",
+      "url": "https://thunderpick.io",
+      "bonus": {
+        "type": "deposit",
+        "amount": 500,
+        "currency": "EUR",
+        "match_percent": 100,
+        "wager": 30,
+        "max_cashout": 2500,
+        "expiry_days": 14
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 10,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Esports betting / Casino slots",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "browser_verified": true,
+      "notes": "Esports + Sports + Casino. Focus esports betting. EU-compliant cookie consent."
+    },
+    {
+      "id": "betmode",
+      "name": "BetMode",
+      "priority": 18,
+      "tier": "crypto-nokyo",
+      "url": "https://betmode.io",
+      "bonus": {
+        "type": "no-deposit",
+        "amount": 0,
+        "currency": "USD",
+        "wager": 0,
+        "notes": "Weekly Wagering Race + Rewards + Challenges",
+        "max_cashout": 500,
+        "expiry_days": 7
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 1,
+        "min_withdrawal": 5
+      },
+      "best_game": {
+        "name": "Blackjack / Slots / Live Casino",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "browser_verified": true,
+      "notes": "World's Most Transparent Casino. Instant withdrawals. Slots/Live/BJ/Roulette/Game Shows."
+    },
+    {
+      "id": "betsio",
+      "name": "Bets.io",
+      "priority": 19,
+      "tier": "crypto-nokyo",
+      "url": "https://bets.io",
+      "bonus": {
+        "type": "no-deposit-freespins",
+        "amount": 20,
+        "currency": "FS",
+        "spin_value": 0.10,
+        "wager": 40,
+        "max_cashout": 100,
+        "expiry_days": 7
+      },
+      "payment": {
+        "deposit": ["BTC", "ETH", "USDT", "LTC", "DOGE"],
+        "withdrawal": ["BTC", "ETH", "USDT"],
+        "withdrawal_speed_minutes": 10,
+        "min_withdrawal": 10
+      },
+      "best_game": {
+        "name": "Slots / Lucky Wheel",
+        "rtp": 0.97
+      },
+      "kyc_required": false,
+      "spid_required": false,
+      "jurisdiction": "curacao",
+      "browser_verified": true,
+      "notes": "20 FS no-dep. Lucky Wheel, Cashback, Loyalty/VIP/Tournaments. Fast crypto payouts."
     }
   ],
   "banned": [
