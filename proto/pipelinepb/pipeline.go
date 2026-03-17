@@ -508,3 +508,146 @@ type watchStateServer struct {
 func (x *watchStateServer) Send(m *StateUpdate) error {
 	return x.ServerStream.SendMsg(m)
 }
+
+// ── AgentService types ──────────────────────────────────────────────────────
+
+type GetTaskRequest struct {
+	AgentId string
+}
+
+type AgentTask struct {
+	TaskId      string
+	TaskType    string // "register", "claim_bonus", "do_wagering", "withdraw"
+	CasinoId    string
+	Casino      *CasinoInfo
+	StrategyRef string
+	Tips        []string
+	BetSize     float64
+	StopLoss    float64
+	WagerTarget float64
+	Params      map[string]string
+}
+
+type TaskStatusReport struct {
+	TaskId        string
+	AgentId       string
+	Status        string // "in_progress", "completed", "failed", "paused"
+	Message       string
+	CurrentBalance float64
+	WageredSoFar  float64
+	ScreenshotB64 string
+}
+
+type TaskStatusResponse struct {
+	Ok          bool
+	Instruction string // "continue", "stop", "pause"
+}
+
+type AgentLogEntry struct {
+	AgentId       string
+	Level         string // "info", "warn", "error", "debug", "action"
+	Message       string
+	Timestamp     string
+	ScreenshotB64 string
+}
+
+type AgentLogAck struct {
+	Ok bool
+}
+
+// ── AgentService interface ──────────────────────────────────────────────────
+
+type AgentServiceServer interface {
+	GetTask(context.Context, *GetTaskRequest) (*AgentTask, error)
+	ReportTaskStatus(context.Context, *TaskStatusReport) (*TaskStatusResponse, error)
+	StreamAgentLog(AgentService_StreamAgentLogServer) error
+}
+
+type UnimplementedAgentServiceServer struct{}
+
+func (UnimplementedAgentServiceServer) GetTask(context.Context, *GetTaskRequest) (*AgentTask, error) {
+	return nil, grpc.ErrServerStopped
+}
+func (UnimplementedAgentServiceServer) ReportTaskStatus(context.Context, *TaskStatusReport) (*TaskStatusResponse, error) {
+	return nil, grpc.ErrServerStopped
+}
+func (UnimplementedAgentServiceServer) StreamAgentLog(AgentService_StreamAgentLogServer) error {
+	return grpc.ErrServerStopped
+}
+
+type AgentService_StreamAgentLogServer interface {
+	SendAndClose(*AgentLogAck) error
+	Recv() (*AgentLogEntry, error)
+	grpc.ServerStream
+}
+
+// ── AgentService registration ───────────────────────────────────────────────
+
+func RegisterAgentServiceServer(s *grpc.Server, srv AgentServiceServer) {
+	s.RegisterService(&_AgentService_serviceDesc, srv)
+}
+
+var _AgentService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "pipeline.AgentService",
+	HandlerType: (*AgentServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{MethodName: "GetTask", Handler: _AgentService_GetTask_Handler},
+		{MethodName: "ReportTaskStatus", Handler: _AgentService_ReportTaskStatus_Handler},
+	},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:   "StreamAgentLog",
+			Handler:      _AgentService_StreamAgentLog_Handler,
+			ClientStreams: true,
+		},
+	},
+	Metadata: "proto/pipeline.proto",
+}
+
+func _AgentService_GetTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).GetTask(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{Server: srv, FullMethod: "/pipeline.AgentService/GetTask"}
+	return interceptor(ctx, in, info, func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).GetTask(ctx, req.(*GetTaskRequest))
+	})
+}
+
+func _AgentService_ReportTaskStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TaskStatusReport)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).ReportTaskStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{Server: srv, FullMethod: "/pipeline.AgentService/ReportTaskStatus"}
+	return interceptor(ctx, in, info, func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).ReportTaskStatus(ctx, req.(*TaskStatusReport))
+	})
+}
+
+func _AgentService_StreamAgentLog_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(AgentServiceServer).StreamAgentLog(&agentLogServer{stream})
+}
+
+type agentLogServer struct {
+	grpc.ServerStream
+}
+
+func (x *agentLogServer) SendAndClose(m *AgentLogAck) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *agentLogServer) Recv() (*AgentLogEntry, error) {
+	m := new(AgentLogEntry)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}

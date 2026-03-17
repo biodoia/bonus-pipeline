@@ -28,6 +28,64 @@ service PipelineService {
   rpc WatchState(WatchStateRequest) returns (stream StateUpdate);
 }
 
+// Agent service — daemon dispatches tasks, agent executes via browser
+service AgentService {
+  // Agent pulls next task from daemon
+  rpc GetTask(GetTaskRequest) returns (AgentTask);
+
+  // Agent reports task progress/completion
+  rpc ReportTaskStatus(TaskStatusReport) returns (TaskStatusResponse);
+
+  // Agent streams logs back to daemon for TUI display
+  rpc StreamAgentLog(stream AgentLogEntry) returns (AgentLogAck);
+}
+
+// ── Agent Messages ──────────────────────────────────────────────────────────
+
+message GetTaskRequest {
+  string agent_id = 1;
+}
+
+message AgentTask {
+  string task_id = 1;
+  string task_type = 2;           // "register", "claim_bonus", "do_wagering", "withdraw"
+  string casino_id = 3;
+  CasinoInfo casino = 4;
+  string strategy_ref = 5;        // BJ/poker/slots strategy text
+  repeated string tips = 6;
+  double bet_size = 7;
+  double stop_loss = 8;           // stop if balance drops below this
+  double wager_target = 9;        // total wagering amount needed
+  map<string, string> params = 10; // extra task-specific params
+}
+
+message TaskStatusReport {
+  string task_id = 1;
+  string agent_id = 2;
+  string status = 3;              // "in_progress", "completed", "failed", "paused"
+  string message = 4;
+  double current_balance = 5;
+  double wagered_so_far = 6;
+  string screenshot_b64 = 7;      // optional screenshot for debug
+}
+
+message TaskStatusResponse {
+  bool ok = 1;
+  string instruction = 2;         // daemon can send "continue", "stop", "pause"
+}
+
+message AgentLogEntry {
+  string agent_id = 1;
+  string level = 2;               // "info", "warn", "error", "debug", "action"
+  string message = 3;
+  string timestamp = 4;
+  string screenshot_b64 = 5;
+}
+
+message AgentLogAck {
+  bool ok = 1;
+}
+
 // ── Messages ────────────────────────────────────────────────────────────────
 
 message InitRequest {

@@ -332,6 +332,82 @@ func (s *server) WatchState(_ *pb.WatchStateRequest, stream pb.PipelineService_W
 	}
 }
 
+// ── AgentService implementation ──────────────────────────────────────────────
+
+type agentServer struct {
+	pb.UnimplementedAgentServiceServer
+	pipeline *server
+	logCh    chan *pb.AgentLogEntry
+}
+
+func (a *agentServer) GetTask(_ context.Context, req *pb.GetTaskRequest) (*pb.AgentTask, error) {
+	a.pipeline.mu.RLock()
+	defer a.pipeline.mu.RUnlock()
+
+	c := engine.NextPendingCasino(a.pipeline.db, a.pipeline.state)
+	if c == nil {
+		return &pb.AgentTask{TaskId: "", TaskType: "none"}, nil
+	}
+
+	strat := engine.GetGameStrategy(*c)
+	bonusVal := engine.CalcBonusValue(*c)
+	betSize := engine.CalcBetSize(*c)
+	wagerTarget := c.Bonus.Wager * bonusVal
+	stopLoss := bonusVal * a.pipeline.db.Rules.StopLossPct
+
+	// Determine task type based on casino state
+	cs := a.pipeline.state.Casinos[c.ID]
+	taskType := "register"
+	switch cs.Status {
+	case "active":
+		taskType = "do_wagering"
+	}
+
+	return &pb.AgentTask{
+		TaskId:      fmt.Sprintf("%s-%s-%d", c.ID, taskType, time.Now().Unix()),
+		TaskType:    taskType,
+		CasinoId:    c.ID,
+		Casino:      casinoToProto(*c, a.pipeline.state.CurrentBankroll),
+		StrategyRef: strat.StrategyRef,
+		Tips:        strat.Tips,
+		BetSize:     betSize,
+		StopLoss:    stopLoss,
+		WagerTarget: wagerTarget,
+	}, nil
+}
+
+func (a *agentServer) ReportTaskStatus(_ context.Context, req *pb.TaskStatusReport) (*pb.TaskStatusResponse, error) {
+	log.Printf("[agent:%s] task=%s status=%s msg=%s balance=%.2f wagered=%.2f",
+		req.AgentId, req.TaskId, req.Status, req.Message,
+		req.CurrentBalance, req.WageredSoFar)
+
+	// Forward to watchers as a state update
+	a.pipeline.broadcast("agent_"+req.Status, req.TaskId)
+
+	instruction := "continue"
+	if req.Status == "failed" {
+		instruction = "stop"
+	}
+
+	return &pb.TaskStatusResponse{Ok: true, Instruction: instruction}, nil
+}
+
+func (a *agentServer) StreamAgentLog(stream pb.AgentService_StreamAgentLogServer) error {
+	for {
+		entry, err := stream.Recv()
+		if err != nil {
+			return stream.SendAndClose(&pb.AgentLogAck{Ok: true})
+		}
+		log.Printf("[agent-log:%s] [%s] %s", entry.AgentId, entry.Level, entry.Message)
+		if a.logCh != nil {
+			select {
+			case a.logCh <- entry:
+			default:
+			}
+		}
+	}
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 func casinoToProto(c engine.Casino, bankroll float64) *pb.CasinoInfo {
@@ -376,6 +452,10 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterPipelineServiceServer(grpcServer, srv)
+	pb.RegisterAgentServiceServer(grpcServer, &agentServer{
+		pipeline: srv,
+		logCh:    make(chan *pb.AgentLogEntry, 64),
+	})
 
 	// Graceful shutdown
 	sigCh := make(chan os.Signal, 1)
